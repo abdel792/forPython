@@ -2,7 +2,16 @@ import re
 sp=sixpad
 regFunc = re.compile("^[ \t]*def.*?:.*")
 regClass = re.compile("^[ \t]*class.*?:.*")
-regClassAndFunc = re.compile("^[ \t]*((?:class|def).*?)(?=:.*$)", re.MULTILINE)
+regClassAndFunc = re.compile("^[ \t]*((?:class|def).*?:.*$)", re.MULTILINE)
+
+def parseElement(element):
+	offset=sp.window.curPage.text.index(element)
+	lineNumber=sp.window.curPage.lineOfOffset(offset)
+	if regClass.match(element):
+		key="%s %s, niveau %d" % (element.split(" ")[1].split("(")[0], "classe", sp.window.curPage.lineIndentLevel(lineNumber))
+	else:
+		key="%s %s, niveau %d" % (element.split(" ")[1].split("(")[0], "fonction", sp.window.curPage.lineIndentLevel(lineNumber))
+	return key
 
 def nextClass():
 	if regClass.match(sp.window.curPage.line(sp.window.curPage.curLine)) and sp.window.curPage.curLine < sp.window.curPage.lineCount:
@@ -63,7 +72,8 @@ sixpad.window.addAccelerator("SHIFT+F2", previousFunction)
 def selectAClassOrFunction():
 	choices=regClassAndFunc.findall(sixpad.window.curPage.text)
 	if choices:
-		element=sixpad.window.choice("Veuillez sélectionner une classe ou fonction", "Liste d'éléments", choices, 0)
+		choicesList=[parseElement(k) for k in choices]
+		element=sixpad.window.choice("Veuillez sélectionner une classe ou fonction", "Liste d'éléments", choicesList, 0)
 		if element == -1:
 			return
 		offset=sixpad.window.curPage.text.index(choices[element])
