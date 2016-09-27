@@ -1,0 +1,9 @@
+# [4] listage des noms des modules disponibles pour cet interpréteur
+try:
+	import pkgutil
+	for i in pkgutil.walk_packages():
+		f,j,k=i
+		print(j)
+	# end for
+except: pass
+# [/4]

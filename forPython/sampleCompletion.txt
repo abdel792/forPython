@@ -1,0 +1,29 @@
+# -*- coding: utf-8 -*-
+# script sample de listage des objets et mots clés du langage python
+
+# [0] écriture de la structure des classes et def
+[structure]
+
+# [1] listage de mots clés liés à des imports particuliers
+try:
+	[imports]
+	lst=dir()
+	for e in lst: print(e)
+except: pass
+# [/1]
+
+# [2] listages des mots clés du module builtins
+try:
+	lst=dir(__builtins__)
+	for e in lst:		print(e)
+except: pass
+# [/2]
+
+# [3] listage des mots clés standards du langage python
+try:
+	import keyword
+	lst=keyword.kwlist
+	for e in lst: print(e)
+except: pass
+# [/3]
+
