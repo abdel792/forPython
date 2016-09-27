@@ -8,6 +8,7 @@ import re
 import os
 import subprocess
 import io
+
 # Dictionnaire pour les regexps.
 regexp={
 	"regClsPython":"^[ \t]*class.*?:.*",
@@ -38,6 +39,8 @@ shortcuts["deleteCurrentLine"] = sp.getConfig("deleteCurrentLine") if sp.getConf
 # Navigation
 shortcuts["nextElement"] = sp.getConfig("nextElement") if sp.getConfig("nextElement") else "F2"
 shortcuts["previousElement"] = sp.getConfig("previousElement") if sp.getConfig("previousElement") else "SHIFT+F2"
+shortcuts["nextClass"] = sp.getConfig("nextClass") if sp.getConfig("nextClass") else "CTRL+F2"
+shortcuts["previousClass"] = sp.getConfig("previousClass") if sp.getConfig("previousClass") else "CTRL+SHIFT+F2"
 shortcuts["selectAClassOrFunction"] = sp.getConfig("selectAClassOrFunction") if sp.getConfig("selectAClassOrFunction") else "CTRL+L"
 # Modify shortcuts
 shortcuts["modifyShortcuts"] = sp.getConfig("modifyShortcuts") if sp.getConfig("modifyShortcuts") else "CTRL+M"
@@ -56,6 +59,8 @@ def modifyShortcuts():
 		"deleteCurrentLine":deletion.deleteCurrentLine.label.replace("&", ""),
 		"nextElement":navigation.nextElement.label.replace("&", ""),
 		"previousElement":navigation.previousElement.label.replace("&", ""),
+		"nextClass":navigation.nextClass.label.replace("&", ""),
+		"previousClass":navigation.previousClass.label.replace("&", ""),
 		"selectAClassOrFunction":navigation.selectAClassOrFunction.label.replace("&", ""),
 		"modifyShortcuts":modifyAccelerators.modifyShortcuts.label.replace("&", ""),
 		"runAPythonCodeOrModule":menuForPython.runAPythonCodeOrModule.label.replace("&", "")
@@ -263,6 +268,33 @@ def previousElement():
 	else:
 		i = sp.window.curPage.curLine
 	while i > -1 and not regClassAndFunc.match(sp.window.curPage.line(i)):
+		i -= 1
+		if i == -1:
+			sp.window.messageBeep(0)
+			break
+	sp.window.curPage.curLine = i
+	sp.say(getLineHeading(sp.window.curPage.curLine), True)
+def nextClass():
+	regClass = re.compile(regexp["regClsPython"], re.MULTILINE)
+	if regClass.match(sp.window.curPage.line(sp.window.curPage.curLine)) and sp.window.curPage.curLine < sp.window.curPage.lineCount:
+		i = sp.window.curPage.curLine + 1
+	else:
+		i = sp.window.curPage.curLine
+	while i < sp.window.curPage.lineCount and not regClass.match(sp.window.curPage.line(i)):
+		i += 1
+		if i == sp.window.curPage.lineCount:
+			sp.window.messageBeep(0)
+			break
+	sp.window.curPage.curLine = i
+	sp.say(getLineHeading(sp.window.curPage.curLine), True)
+
+def previousClass():
+	regClass = re.compile(regexp["regClsPython"], re.MULTILINE)
+	if regClass.match(sp.window.curPage.line(sp.window.curPage.curLine)) and sp.window.curPage.curLine > 0:
+		i = sp.window.curPage.curLine - 1
+	else:
+		i = sp.window.curPage.curLine
+	while i > -1 and not regClass.match(sp.window.curPage.line(i)):
 		i -= 1
 		if i == -1:
 			sp.window.messageBeep(0)
@@ -510,9 +542,13 @@ def make_action(i, f, exFile=None):
 def writeToFileAndScreen(cmd, logfile):
 	# Permet d'exécuter le module encours avec subprocess.Popen, puis de diriger la sortie vers la console, ainsi que vers le fichier logfile.log.
 	# Cette fonction ne s'applique que lorsque le curPythonVersion est différent du Python embarqué avec 6pad++.
+	# Les 2 lignes de code suivantes permettent d'éviter l'ouverture de la console lors de l'exécution.
+	# La valeur de la variable startupinfo sera alors affectée au paramètre startupinfo de la classe Popen.
+	startupinfo = subprocess.STARTUPINFO()
+	startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 	# On fait en sorte que le stdout comprenne le stderr pour faciliter l'analyse des erreurs.
 	# Le paramètre universal_newlines de subprocess.Popen et fixé sur True afin d'obtenir les données directement en unicode, ce qui devrait nous permettre d'éviter de les décoder.
-	proc = subprocess.Popen(cmd, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.STDOUT, universal_newlines=True, shell = True)
+	proc = subprocess.Popen(cmd, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.STDOUT, universal_newlines=True, shell = True, startupinfo = startupinfo)
 	# On crée une liste qui sera convertie plus bas en string et retournée par la fonction, en vue d'analyser les éventuels messages d'erreur.
 	l = []
 	# On itère sur le proc.stdout.
@@ -521,7 +557,8 @@ def writeToFileAndScreen(cmd, logfile):
 		if line:
 			logfile.write(line)
 			# On dirige vers la console, ligne par ligne.
-			sys.stdout.write(line)
+			if sys.stdout:
+				sys.stdout.write(line)
 			# On ajoute chaque ligne dans la liste sous la forme d'élément de liste.
 			l.append(line)
 	proc.wait()
@@ -530,8 +567,8 @@ def writeToFileAndScreen(cmd, logfile):
 
 def goToLineError(errorMessage):
 	# Permet de retrouver la ligne d'erreur et de l'atteindre.
-	# On crée un index pour les recherches de lignes.
-	i = -1
+	# On initialise les erreurs à rechercher.
+	f = l = ""
 	# On crée une regexp qui va capturer 2 partie du messages d'erreur.
 	# 1. La partie concernant Le fichier comportant l'erreur et son chemin.
 	# 2. La ligne où se trouve l'erreur, qui nous aidera pour l'atteindre.
@@ -553,16 +590,28 @@ def goToLineError(errorMessage):
 			# On stoppe l'itération pour ne récupérer que la première erreur à partir de la fin.
 			break
 	# On vérifie si f est bien le module actuellement ouvert.
-	if f != page.file:
-		# Le module actuellement ouvert n'est pas celui comportant l'erreur.
-		# On l'ouvre et le définit comme étant le module courant.
-		sp.window.open(f)
-		# On réaffecte page à la page courante.
-		page = sp.window.curPage
+	if f and l:
+		if f != page.file:
+			# Le module actuellement ouvert n'est pas celui comportant l'erreur.
+			# On l'ouvre et le définit comme étant le module courant.
+			sp.window.open(f)
+			# On réaffecte page à la page courante.
+			page = sp.window.curPage
+	else:
+		sp.window.alert("Le module comportant l'erreur est %s, à la ligne %s, c'est un module faisant partie du package de Python, impossible donc de l'ouvrir" % (f, l), "Impossible d'ouvrir le module comportant l'erreur")
+		return
 	# On pointe sur la ligne concernée, dans le fichier comportant l'erreur.
 	page.curLine = int(l) - 1
 	# On retourne un tuple, composé du chemin du fichier concerné, ainsi que du numéro de ligne de l'erreur.
 	return (f, l)
+
+def executeModule(filepath):
+	globals={
+		"__file__":filepath,
+		"__name__":"__main__"
+	}
+	with open(filepath, "r") as fd:
+		exec(compile(fd.read(), filepath, "exec"), globals)
 
 def runAPythonCodeOrModule():
 	# Permet d'exécuter le module en cours d'exploration.
@@ -612,8 +661,7 @@ def runAPythonCodeOrModule():
 			sys.stdout = out
 			try:
 				# On execute le code.
-				code = compile(curFileCode, path, "exec")
-				exec(code)
+				executeModule(path)
 			except:
 				# Il y a des erreurs.
 				lines = traceback.format_exception(etype = sys.exc_info()[0], value = sys.exc_info()[1], tb = sys.exc_info()[2])
@@ -691,6 +739,8 @@ deletion.add(label = "Supprimer la ligne courante", action = deleteCurrentLine, 
 navigation = menuForPython.add(label = "&Navigation", submenu = True)
 navigation.add(label = "Se déplacer vers l'élément &suivant", action = nextElement, accelerator = shortcuts["nextElement"], name = "nextElement")
 navigation.add(label = "Se déplacer vers l'élément &précédent", action = previousElement, accelerator = shortcuts["previousElement"], name = "previousElement")
+navigation.add(label = "Se déplacer vers la c&lasse suivante", action = nextClass, accelerator = shortcuts["nextClass"], name = "nextClass")
+navigation.add(label = "Se déplacer vers la classe p&récédente", action = previousClass, accelerator = shortcuts["previousClass"], name = "previousClass")
 navigation.add(label = "Liste des c&lasses et fonctions", action = selectAClassOrFunction, accelerator = shortcuts["selectAClassOrFunction"], name = "selectAClassOrFunction")
 
 # Modify shortcuts
@@ -710,6 +760,11 @@ def addPythonVersionsSubMenus():
 	i = 0
 	# On crée une liste des dossier susceptibles de contenir un répertoire de Python.
 	pathsList = []
+	# On vérifie si le Python ainsi que la plateforme Windows sont récents.
+	# Car Python 35 s'installe dans un répertoire particulier.
+	if os.path.isdir(os.path.join(os.environ.get("USERPROFILE"), "Appdata\\Local\\Programs\\python")):
+		# On ajoute le chemin à la liste pathsList.
+		pathsList.append(os.path.join(os.environ.get("USERPROFILE"), "Appdata\\Local\\Programs\\python"))
 	vol="CDEFGHIJ"
 	for k in range(len(vol)):
 		pathsList.extend (["%s:\\" % vol[k],
@@ -717,6 +772,8 @@ def addPythonVersionsSubMenus():
 		"%s:\\Program Files" % vol[k],
 		"%s:\\Program Files (x86)" % vol[k]]
 		)
+	# On trie notre liste.
+	pathsList.sort()
 	for p in pathsList:
 		# Si le répertoire existe vraiment.
 		if os.path.isdir(p):
