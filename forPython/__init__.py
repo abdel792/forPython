@@ -3,10 +3,11 @@
 # Importation des modules.
 import sixpad as sp
 import inspect
+import traceback
 import re
 import os
 import subprocess
-
+import io
 # Dictionnaire pour les regexps.
 regexp={
 	"regClsPython":"^[ \t]*class.*?:.*",
@@ -14,12 +15,12 @@ regexp={
 	"regClsAndFuncPython":"^[ \t]*((?:class|def).*?:.*$)"
 	}
 
+# Liste pour les versions de Python.
+pythonVersionsList = ["6padPythonVersion"]
+
 # Variables globales.
 mode = 0
-pythonVersion = sp.getConfig("pythonVersion") if sp.getConfig("pythonVersion") else "6padPythonVersion"
-
-# Dictionnaire pour le chemin de l'exécutable de Python.
-pythonExPaths = {"6padPythonVersion":"6pad++"}
+curPythonVersion = sp.getConfig("curPythonVersion") if sp.getConfig("curPythonVersion") else "6padPythonVersion"
 
 # Dictionnaire pour les raccourcis-clavier des menus nécessitant une action callback.
 shortcuts = {}
@@ -61,7 +62,7 @@ def modifyShortcuts():
 	}
 	# On remplit notre liste de choix à partir de nos 2 dictionnaires functionsList et shortcuts.
 	choices = [functionsList[k] + ":" + shortcuts[k] for k in shortcuts.keys()]
-	# On affiche notre listebox.
+	# On affiche notre listBox.
 	element = sp.window.choice("Sélectionnez une fonction", "Liste des fonctions", choices)
 	if element == -1:
 		# On a validé sur annulé ou échappe.
@@ -208,7 +209,6 @@ sp.window.addEvent("pageOpened", openedPage)
 def parseElement(element):
 	offset = sp.window.curPage.text.index(element)
 	lineNumber = sp.window.curPage.lineOfOffset(offset)
-
 	regClass = re.compile(regexp["regClsPython"], re.MULTILINE)
 	if regClass.match(element):
 		key = "%s %s, niveau %d" % (element.split(" ")[1].split("(")[0], "classe", sp.window.curPage.lineIndentLevel(lineNumber))
@@ -494,33 +494,146 @@ def getCurScriptFolderPath():
 	sPath = os.path.dirname(sPath)
 	return sPath
 
-def make_action(f):
+def make_action(i, f, exFile=None):
 	def action():
-		global pythonVersion
+		global curPythonVersion
 		menuName = f
-		pythonVersion = menuName
+		curPythonVersion = "6padPythonVersion" if not exFile else exFile
 		for x in range(menuPythonVersion.length):
-			if menuPythonVersion[x].name != menuName:
+			if x != i:
 				menuPythonVersion[x].checked = False
 			else:
 				menuPythonVersion[x].checked = True
-		sp.setConfig("pythonVersion", pythonVersion)
-		sp.window.alert("C'est bon, %s a bien été activé !" % (menuPythonVersion[f].name), "Confirmation")
+		sp.setConfig("curPythonVersion", curPythonVersion)
+		sp.window.alert("C'est bon, %s a bien été activé !" % (curPythonVersion), "Confirmation")
 	return action
+def writeToFileAndScreen(cmd, logfile):
+	# Permet d'exécuter le module encours avec subprocess.Popen, puis de diriger la sortie vers la console, ainsi que vers le fichier logfile.log.
+	# Cette fonction ne s'applique que lorsque le curPythonVersion est différent du Python embarqué avec 6pad++.
+	# On fait en sorte que le stdout comprenne le stderr pour faciliter l'analyse des erreurs.
+	# Le paramètre universal_newlines de subprocess.Popen et fixé sur True afin d'obtenir les données directement en unicode, ce qui devrait nous permettre d'éviter de les décoder.
+	proc = subprocess.Popen(cmd, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.STDOUT, universal_newlines=True, shell = True)
+	# On crée une liste qui sera convertie plus bas en string et retournée par la fonction, en vue d'analyser les éventuels messages d'erreur.
+	l = []
+	# On itère sur le proc.stdout.
+	for line in proc.stdout:
+		# On écrit dans le fichier de log, ligne par ligne.
+		logfile.write(line)
+		# On dirige vers la console, ligne par ligne.
+		sys.stdout.write(line)
+		# On ajoute chaque ligne dans la liste sous la forme d'élément de liste.
+		l.append(line)
+	# On retourne la liste créée sous la forme d'une string.
+	return "\r\n".join(l)
+
+def goToLineError(errorMessage):
+	# Permet de retrouver la ligne d'erreur et de l'atteindre.
+	# On crée une regexp qui va capturer 2 partie du messages d'erreur.
+	# 1. La partie concernant Le fichier comportant l'erreur et son chemin.
+	# 2. La ligne où se trouve l'erreur, qui nous aidera pour l'atteindre.
+	find=re.match(".+(?<=file \")([^\"]+)\", line (\d+)", errorMessage, re.I|re.S)
+	# On affecte les variables f et l à ces 2 éléments.
+	f, l = find.group(1), find.group(2)
+	#On affecte la variable page au fichier en cours d'exploration.
+	page = sp.window.curPage
+	# On vérifie si le fichier en cours d'exploration est bien celui comportant l'erreur.
+	if not os.path.samefile(f, page.file):
+		# On vérifie parmi les fichiers actuellement ouverts.
+		for p in sp.window.pages:
+			if os.path.samefile(f, p.file):
+				# On affecte page à la page trouvée.
+				page = p
+	# On pointe sur la ligne concernée, dans le fichier comportant l'erreur.
+	page.curLine = int(l) - 1
+	# On retourne un tuple, composé du chemin du fichier concerné, ainsi que du numéro de ligne de l'erreur.
+	return (f, l)
 
 def runAPythonCodeOrModule():
-	if pythonExPaths[pythonVersion] == "6pad++":
-		if not sp.window.curPage.selectedText:
-			sp.window.alert("Vous devez sélectionner une partie de code pour pouvoir l'exécuter avec le python embarqué avec 6pad++", "Information")
+	# Permet d'exécuter le module en cours d'exploration.
+	# On crée une variable pour la page courante.
+	curPage = sp.window.curPage
+	# On affecte une variable path vers le fichier courant.
+	path = curPage.file
+	# On vérifie si le fichier est bien sauvegardé.
+	if not path:
+		# On regarde s'il comporte quand même du code.
+		if not curPage.text:
+			# Il n'y en a pas, on informe l'utilisateur et on sort.
+			sp.window.alert("Le module courant n'est pas sauvegardé et il est vide, impossible donc d'exécuter le code", "Aucun contenu à exécuter")
 			return
-		#code = compile(sp.window.curPage.selectedText, sp.window.curPage.file, "exec")
-		code = sp.window.curPage.selectedText
-		exec(code)
+		# Il y a bien du code, on sauvegarde cela dans un module temporaire.
+		tmp = os.path.join(sp.appdir, "tmp.py")
+		tmpFile = open(tmp, "w")
+		# On y insère le contenu de notre fichier non sauvegardé.
+		tmpFile.write(curPage.text)
+		# On referme ce fichier.
+		tmpFile.close()
+		#On ouvre ce fichier temporaire et on le définit comme étant le module courant.
+		sp.window.open(tmp)
+		# On informe l'utilisateur que son nouveau module a bien été sauvegardé et on l'invite à refaire son raccourci pour exécuter son code.
+		sp.window.alert("Votre nouveau module a bien été sauvegardé dans le fichier %s, veuillez cliquer sur OK pour refermer cette présente alerte, puis réexécuter votre raccourci %s pour exécuter son code" % (tmp, shortcuts["runAPythonCodeOrModule"]), "Confirmation de sauvegarde")
+		return
 	else:
-		with open(os.path.join(os.path.dirname(sp.window.curPage.file), "logfile.log"), 'w') as f:
-			proc = subprocess.Popen([pythonExPaths[pythonVersion], sp.window.curPage.file], stdout = f, stderr = f)
-			(stdout, stderr) = proc.communicate()
-			sp.window.open(os.path.join(os.path.dirname(sp.window.curPage.file), "logfile.log"))
+		# Le fichier est bien sauvegardé.
+		# On regarde s'il comporte quand même du code.
+		if not curPage.text:
+			# Il n'y en a pas, on informe l'utilisateur et on sort.
+			sp.window.alert("Le module courant est vide, impossible donc d'exécuter le code", "Aucun contenu à exécuter")
+			return
+		# Le module est bien sauvegardé et prêt à l'exécution.
+		# On regarde si on tourne avec le Python embarqé avec 6pad++.
+		if curPythonVersion== "6padPythonVersion":
+			# On pointe vers le fichier courant en lecture.
+			curFile = open(path, "r")
+			# On définit le code à exécuter, qui n'est autre que tout le contenu du module courant.
+			curFileCode = curFile.read()
+			# On referme le fichier ouvert par open.
+			curFile.close()
+			# On sauvegarde la sortie standard sys.stdout.
+			oldOutput = sys.stdout
+			# On redirige la sortie standard vers StringIO().
+			out = io.StringIO()
+			sys.stdout = out
+			try:
+				# On execute le code.
+				code = compile(curFileCode, path, "exec")
+				exec(code)
+			except:
+				# Il y a des erreurs.
+				lines = traceback.format_exception_only(etype=sys.exc_info()[0], value=sys.exc_info()[1])
+				# On remplit notre variable out en y introduisant le contenu de la sortie standard.
+				print (''.join(line for line in lines))
+			finally:
+				# On restaure la sortie standard sys.stdout.
+				sys.stdout = oldOutput
+			# On affecte notre variable contains au contenu de la redirection.
+			contains = out.getvalue()
+			# On ouvre le fichier de log en écriture.
+			f = open(os.path.join(sp.appdir, "logfile.log"), "w+")
+			# On enregistre dans le fichier logfile.log.
+			f.write(contains)
+			# On referme le fichier de log.
+			f.close()
+			# On affiche quand-même le contenu dans la console.
+			print(contains)
+			# On vérifie s'il y a une erreur.
+			if re.match(".+error", contains, re.I|re.S) and re.match(".+file", contains, re.I|re.S) and re.match(".+line", contains, re.I|re.S):
+				# On affiche une alerte, invitant l'utilisateur à atteindre directement la ligne concernée.
+				sp.window.alert("Erreur détectée à la ligne %s, dans le fichier %s, veuillez valider sur entré pour atteindre la ligne concernée.\nPour plus de détails, consultez la console ou le fichier 'logfile.log', figurant dans le répertoire de l'exécutable de 6pad++." % (goToLineError(contains)[1], goToLineError(contains)[0]), "Erreur détectée")
+		else:
+			# On utilise une autre version de Python, indépendante de 6pad++.
+			# On ouvre le fichier de log.
+			f = open(os.path.join(sp.appdir, "logfile.log"), "w+")
+			# On crée la ligne de commande qui sera exécutée dans la fonction writeToFileAndScreen, grâce à subprocess.Popen.
+			cmd=[curPythonVersion, curPage.file]
+			# On récupère le retour de writeToFileAndScreen.
+			contains=writeToFileAndScreen(cmd, f)
+			# On referme le fichier de log.
+			f.close()
+			# On vérifie s'il y a une erreur.
+			if re.match(".+error", contains, re.I|re.S) and re.match(".+file", contains, re.I|re.S) and re.match(".+line", contains, re.I|re.S):
+				# On affiche une alerte, invitant l'utilisateur à atteindre directement la ligne concernée.
+				sp.window.alert("Erreur détectée à la ligne %s, dans le fichier %s, veuillez valider sur entré pour atteindre la ligne concernée.\nPour plus de détails, consultez la console ou le fichier 'logfile.log', figurant dans le répertoire de l'exécutable de 6pad++." % (goToLineError(contains)[1], goToLineError(contains)[0]), "Erreur détectée")
 
 # menus
 
@@ -571,40 +684,39 @@ modifyAccelerators.add(label = "Modifier les ra&ccourcis-clavier des commandes",
 
 # For python versions.
 menuPythonVersion = menuForPython.add(label = "Activer une &version de Python installée", submenu = True)
-menuPythonVersion.add(label = "6&pad++ Python version", action = make_action("6padPythonVersion"), name = "6padPythonVersion")
+menuPythonVersion.add(label = "6&pad++ Python version", action = make_action(0, "6padPythonVersion"), name = "6padPythonVersion")
 
 # for running code or module.
 menuForPython.add(label = "&Exécuter du code python ou un module", action = runAPythonCodeOrModule, name = "runAPythonCodeOrModule", accelerator = shortcuts["runAPythonCodeOrModule"])
 
 def addPythonVersionsSubMenus():
+	# On initialise l'index des sous-menus qui seront créés dans la boucle.
+	i = 0
 	# On crée une liste des dossier susceptibles de contenir un répertoire de Python.
-	pathsList = ["C:",
-	"C:/Programs",
-	"C:/Program Files",
-	"C:/Program Files (x86)",
-	"D:",
-	"D:/Programs",
-	"D:/Program Files",
-	"D:/Program Files (x86)",
-	"E:"
-	"E:/Programs",
-	"E:/Program Files"
-	"E:/Program Files (x86)"
-	]
+	pathsList = []
+	vol="CDEFGHIJ"
+	for k in range(len(vol)):
+		pathsList.extend (["%s:\\" % vol[k],
+		"%s:\\Programs" % vol[k],
+		"%s:\\Program Files" % vol[k],
+		"%s:\\Program Files (x86)" % vol[k]]
+		)
 	for p in pathsList:
 		# Si le répertoire existe vraiment.
 		if os.path.isdir(p):
 			for f in os.listdir(p):
 				# S'il contient bien un dossier d'une éventuelle version de Python.
-				if re.match("^python\d\.?\d", f, re.IGNORECASE):
+				if re.match("^python\d\.?\d", f, re.I):
 					# On vérifie la présence de l'exécutable.
 					if os.path.isfile(os.path.join(p, f, "python.exe")):
 						# L'exécutable existe bien, on affecte son chemin à la variable exFile.
 						exFile = os.path.join(p, f, "python.exe")
+						# On incrémente l'index des sous-menus qui seront créés plus bas.
+						i += 1
 						# On crée le sous-menu correspondant.
-						menuPythonVersion.add(label = "%s - %s" % (f, os.path.dirname(exFile)), action = make_action(f), name = f)
-						# On remplit le dictionnaire pythonExPaths.
-						pythonExPaths[f] = exFile
+						menuPythonVersion.add(label = "%s - %s" % (f, str(os.path.join(p, f))), action = make_action(i, f, exFile), name = f)
+						# On remplit la liste pythonVersionsList déclarée en début de module.
+						pythonVersionsList.append(exFile)
 
 addPythonVersionsSubMenus()
-menuPythonVersion[pythonVersion].checked = True
+menuPythonVersion[pythonVersionsList.index(curPythonVersion)].checked = True
