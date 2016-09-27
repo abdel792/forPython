@@ -1,0 +1,134 @@
+# Dictionnaire pour les raccourcis-clavier des menus nécessitant une action callback.
+shortcuts = {}
+# for activate/deactivate the forPython extension.
+shortcuts["forPythonKey"] = sp.getConfig("forPythonKey") if sp.getConfig("forPythonKey") else "CTRL+SHIFT+F3"
+	# lineHeadings
+shortcuts["toggleMode"] = sp.getConfig("toggleMode") if sp.getConfig("toggleMode")  else "CTRL+F8"
+# Selection
+shortcuts["selectCurrentFunction"] = sp.getConfig("selectCurrentFunction") if sp.getConfig("selectCurrentFunction") else "CTRL+R"
+shortcuts["selectCurrentClass"] = sp.getConfig("selectCurrentClass") if sp.getConfig("selectCurrentClass") else "CTRL+SHIFT+R"
+# Insertion
+shortcuts["insertHeaderStatement"] = sp.getConfig("insertHeaderStatement") if sp.getConfig("insertHeaderStatement") else "CTRL+I"
+shortcuts["createNewFunction"] = sp.getConfig("createNewFunction") if sp.getConfig("createNewFunction") else "CTRL+E"
+shortcuts["createNewClass"] = sp.getConfig("createNewClass") if sp.getConfig("createNewClass") else "CTRL+SHIFT+C"
+# Deletion
+shortcuts["deleteCurrentClass"] = sp.getConfig("deleteCurrentClass") if sp.getConfig("deleteCurrentClass") else "CTRL+SHIFT+D"
+shortcuts["deleteCurrentFunction"] = sp.getConfig("deleteCurrentFunction") if sp.getConfig("deleteCurrentFunction") else "CTRL+K"
+shortcuts["deleteCurrentLine"] = sp.getConfig("deleteCurrentLine") if sp.getConfig("deleteCurrentLine") else "CTRL+D"
+# Navigation
+shortcuts["nextElement"] = sp.getConfig("nextElement") if sp.getConfig("nextElement") else "F2"
+shortcuts["previousElement"] = sp.getConfig("previousElement") if sp.getConfig("previousElement") else "SHIFT+F2"
+shortcuts["nextClass"] = sp.getConfig("nextClass") if sp.getConfig("nextClass") else "CTRL+F2"
+shortcuts["previousClass"] = sp.getConfig("previousClass") if sp.getConfig("previousClass") else "CTRL+SHIFT+F2"
+shortcuts["selectAClassOrFunction"] = sp.getConfig("selectAClassOrFunction") if sp.getConfig("selectAClassOrFunction") else "CTRL+L"
+shortcuts["goToEnd"] = sp.getConfig("goToEnd") if sp.getConfig("goToEnd") else "ALT+F2"
+# Modify shortcuts
+shortcuts["modifyShortcuts"] = sp.getConfig("modifyShortcuts") if sp.getConfig("modifyShortcuts") else "CTRL+M"
+# Running code or module
+shortcuts["runAPythonCodeOrModule"] = sp.getConfig("runAPythonCodeOrModule") if sp.getConfig("runAPythonCodeOrModule") else "CTRL+F5"
+# To enter a command manually.
+if curPythonVersion != "6padPythonVersion":
+	shortcuts["enterACommand"] = sp.getConfig("enterACommand") if sp.getConfig("enterACommand") else "CTRL+SHIFT+E"
+# for using pip.
+if curPythonVersion != "6padPythonVersion" and os.path.exists(os.path.join(os.path.dirname(curPythonVersion), "scripts", "pip.exe")):
+	shortcuts["updatePip"] = sp.getConfig("updatePip") if sp.getConfig("updatePip") else "CTRL+SHIFT+P"
+	shortcuts["executeAPipCommandFromAList"] = sp.getConfig("executeAPipCommandFromAList") if sp.getConfig("executeAPipCommandFromAList") else "CTRL+F11"
+	# for Py2exe in python27.
+	if re.match("python27", curPythonVersion.split("\\")[-2], re.I):
+		shortcuts["compileScriptWithPy2exeP27"] = sp.getConfig("compileScriptWithPy2exeP27") if sp.getConfig("compileScriptWithPy2exeP27") else "CTRL+F10"
+# for installing package with setup script.
+if curPythonVersion != "6padPythonVersion" and int(curPythonVersion.split("\\")[-2].split("ython")[1][0]) > 1:
+	shortcuts["installPackageWithSetup"] = sp.getConfig("installPackageWithSetup") if sp.getConfig("installPackageWithSetup") else "CTRL+F12"
+# Exploration
+shortcuts["navigateLeft"] = sp.getConfig("navigateLeft") if sp.getConfig("navigateLeft") else "F9"
+shortcuts["navigateRight"] = sp.getConfig("navigateRight") if sp.getConfig("navigateRight") else "F10"
+shortcuts["nextBrother"] = sp.getConfig("nextBrother") if sp.getConfig("nextBrother") else "F11"
+shortcuts["previousBrother"] = sp.getConfig("previousBrother") if sp.getConfig("previousBrother") else "F12"
+# Tags
+shortcuts["removeTags"] = sp.getConfig("removeTags") if sp.getConfig("removeTags") else "F7"
+shortcuts["addTags"] = sp.getConfig("addTags") if sp.getConfig("addTags") else "ALT+F10"
+shortcuts["adjustIndent"] = sp.getConfig("adjustIndent") if sp.getConfig("adjustIndent") else "ALT+F12"
+# Refresh code
+shortcuts["refreshCode"] = sp.getConfig("refreshCode") if sp.getConfig("refreshCode") else "Alt+F12"
+# Accessibility
+shortcuts["vocalSynthesis"] = sp.getConfig("vocalSynthesis") if sp.getConfig("vocalSynthesis") else "CTRL+F3"
+shortcuts["sayCurrentBlocName"] = sp.getConfig("sayCurrentBlocName") if sp.getConfig("sayCurrentBlocName") else "CTRL+SHIFT+B"
+shortcuts["sayCurrentIndentLevel"] = sp.getConfig("sayCurrentIndentLevel") if sp.getConfig("sayCurrentIndentLevel") else "CTRL+SHIFT+L"
+# Other
+shortcuts["defineKeyWord"] = sp.getConfig("defineKeyWord") if sp.getConfig("defineKeyWord") else "CTRL+J"
+shortcuts["completion"] = sp.getConfig("completion") if sp.getConfig("completion") else "CTRL+SHIFT+J"
+shortcuts["advancedSearchAndReplace"] = sp.getConfig("advancedSearchAndReplace") if sp.getConfig("advancedSearchAndReplace") else "CTRL+SHIFT+H"
+
+def modifyShortcuts():
+	# On crée un dictionnaire pour la liste des options disponibles.
+	functionsList = {
+		"forPythonKey":sp.window.menus.tools.forPythonActivation.label.replace("&", ""),
+		"toggleMode":menuLineHeadings.toggleMode.label.replace("&", ""),
+		"selectCurrentFunction":menuSelection.selectCurrentFunction.label.replace("&", ""),
+		"selectCurrentClass":menuSelection.selectCurrentClass.label.replace("&", ""),
+		"insertHeaderStatement":menuInsertion.insertHeaderStatement.label.replace("&", ""),
+		"createNewFunction":menuInsertion.createNewFunction.label.replace("&", ""),
+		"createNewClass":menuInsertion.createNewClass.label.replace("&", ""),
+		"deleteCurrentFunction":menuDeletion.deleteCurrentFunction.label.replace("&", ""),
+		"deleteCurrentClass":menuDeletion.deleteCurrentClass.label.replace("&", ""),
+		"deleteCurrentLine":menuDeletion.deleteCurrentLine.label.replace("&", ""),
+		"nextElement":menuNavigation.nextElement.label.replace("&", ""),
+		"previousElement":menuNavigation.previousElement.label.replace("&", ""),
+		"nextClass":menuNavigation.nextClass.label.replace("&", ""),
+		"previousClass":menuNavigation.previousClass.label.replace("&", ""),
+		"goToEnd":menuNavigation.goToEnd.label.replace("&", ""),
+		"selectAClassOrFunction":menuNavigation.selectAClassOrFunction.label.replace("&", ""),
+		"modifyShortcuts":menuModifyAccelerators.modifyShortcuts.label.replace("&", ""),
+		"runAPythonCodeOrModule":menuExecution.runAPythonCodeOrModule.label.replace("&", ""),
+		"defineKeyWord":menuForPython.defineKeyWord.label.replace("&", ""),
+		"completion":menuForPython.completion.label.replace("&", ""),
+		"advancedSearchAndReplace":sp.window.menus.edit.advancedSearchAndReplace.label.replace("&", ""),
+		"navigateLeft":sp.window.menus.view.exploration.navigateLeft.label.replace("&", ""),
+		"navigateRight":sp.window.menus.view.exploration.navigateRight.label.replace("&", ""),
+		"nextBrother":sp.window.menus.view.exploration.nextBrother.label.replace("&", ""),
+		"previousBrother":sp.window.menus.view.exploration.previousBrother.label.replace("&", ""),
+		"removeTags":sp.window.menus.view.endBlocTags.removeTags.label.replace("&", ""),
+		"addTags":sp.window.menus.view.endBlocTags.addTags.label.replace("&", ""),
+		"adjustIndent":sp.window.menus.view.endBlocTags.adjustIndent.label.replace("&", ""),
+		"refreshCode":sp.window.menus.view.refreshCode.label.replace("&", ""),
+		"vocalSynthesis":sp.window.menus.accessibility.vocalSynthesis.label.replace("&", ""),
+		"sayCurrentBlocName":sp.window.menus.accessibility.sayCurrentBlocName.label.replace("&", ""),
+		"sayCurrentIndentLevel":sp.window.menus.accessibility.sayCurrentIndentLevel.label.replace("&", "")
+	}
+	if curPythonVersion != "6padPythonVersion":
+		functionsList["enterACommand"] = menuForPython.enterACommand.label.replace("&", "")
+	if curPythonVersion != "6padPythonVersion" and int(curPythonVersion.split("\\")[-2].split("ython")[1][0]) > 1:
+		functionsList["installPackageWithSetup"] = menuForPython.installPackageWithSetup.label.replace("&", "")
+	if curPythonVersion != "6padPythonVersion" and os.path.exists(os.path.join(os.path.dirname(curPythonVersion), "scripts", "pip.exe")):
+		functionsList["updatePip"] = menuForPython.pipMenu["updatePip"].label.replace("&", "")
+		functionsList["executeAPipCommandFromAList"] = menuForPython.pipMenu["executeAPipCommandFromAList"].label.replace("&", "")
+		# On vérifie pour l'ajout de la compilation avec Py2exe pour Python 27.
+		if re.match("python27", curPythonVersion.split("\\")[-2], re.I):
+			functionsList["compileScriptWithPy2exeP27"] = menuForPython["compileScriptWithPy2exeP27"].label.replace("&", "")
+	# On remplit notre liste de choix à partir de nos 2 dictionnaires functionsList et shortcuts.
+	choices = [functionsList[k] + ":" + shortcuts[k] for k in shortcuts.keys()]
+	# On affiche notre listBox.
+	element = sp.window.choice("Sélectionnez une fonction", "Liste des fonctions", choices)
+	if element == -1:
+		# On a validé sur annulé ou échappe.
+		return
+	while 1:
+		# On affiche un prompt invitant l'utilisateur à saisir son nouveau raccourci.
+		prompt = sp.window.prompt("Saisissez votre raccourci pour la commande %s" % choices[element].split(":")[0], "Nouveau raccourci", text = choices[element].split(":")[1])
+		if not prompt:
+			# On a validé sur annuler.
+			return
+		# On vérifie si la clé ne serait pas déjà utilisée.
+		verify = [x for x in list(shortcuts.values()) if x.lower() == prompt.lower()]
+		if len(verify) > 0:
+			sp.window.alert("Le raccourci %s est déjà attribué à la commande %s, veuillez choisir un autre raccourci." % (prompt, functionsList[list(shortcuts.keys())[list(shortcuts.values()).index(prompt)]]))
+			continue
+		else:
+			break
+	# On met à jour le fichier de configuration.
+	sp.setConfig(list(functionsList.keys())[list(functionsList.values()).index(choices[element].split(":")[0])], prompt)
+	# On informe l'utilisateur du changement.
+	sp.window.alert("C'est bon, votre racourci %s a bien été attribué à la commande %s, vous devrez quitter puis relancer 6pad++ pour que vos changements prennent pleinement effet !" % (prompt, choices[element].split(":")[0]), "Confirmation")
+
+
+

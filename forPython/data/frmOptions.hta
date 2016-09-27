@@ -1,0 +1,441 @@
+<HTML>
+	<HEAD> 
+		<TITLE>Options</TITLE>
+		<HTA:APPLICATION ID='Document1' APPLICATIONNAME='Document1' CAPTION='yes' CONTEXTMENU='yes' MAXIMIZEBUTTON='yes' MINIMIZEBUTTON='yes' NAVIGABLE='yes' SELECTION='yes' SHOWINTASKBAR='yes' SYSMENU='yes' WindowState='normal' >
+
+<script type="text/javascript">
+//<!--
+
+function pageDisplay(sPage){
+var col;
+col = document.form1.getElementsByTagName("div")
+for(var i=0; i<col.length; i++){
+if (col[i].className == "onglet"){
+if (col[i].id == sPage){
+col[i].style.display = "";
+} else {
+col[i].style.display = "none";
+}
+}
+}
+}
+
+//-->
+</script>
+
+			<script language="VBScript">
+
+			Sub Window_onLoad
+' se lance au démarrage de la fenêtre
+on error resume next
+' importation des paramètres anciens sauvegardés par le fichier intermédiaire
+s= vbcrlf & readFile(getIniFile) & vbcrlf
+tbl = split(s, vbcrlf)
+with document.form1
+for i = 0 to ubound(tbl)
+if inStr(tbl(i), "WayOfActivatingForPython=") > 0 then
+.WayOfActivatingForPython.selectedIndex = clng(mid(tbl(i), len("WayOfActivatingForPython=")+1))-1
+end if
+if inStr(tbl(i), "PythonExtensionsSupported=") > 0 then
+.PythonExtensionsSupported.value = mid(tbl(i), len("PythonExtensionsSupported=")+1)
+end if
+if inStr(tbl(i), "Propose6padToOpenPythonFiles=") > 0 then
+.Propose6padToOpenPythonFiles.checked = GetCheckedValueIn(mid(tbl(i), len("Propose6padToOpenPythonFiles=")+1))
+end if
+if inStr(tbl(i), "forPythonCheckLineSyntax=") > 0 then
+.forPythonCheckLineSyntax.checked = GetCheckedValueIn(mid(tbl(i), len("forPythonCheckLineSyntax=")+1))
+end if
+if inStr(tbl(i), "forPythonGoToLineOfError=") > 0 then
+.forPythonGoToLineOfError.checked= GetCheckedValueIn(mid(tbl(i), len("forPythonGoToLineOfError=")+1))
+end if
+if inStr(tbl(i), "forPythonShowErrorsIn=") > 0 then
+.forPythonShowErrorsIn.selectedIndex = clng(mid(tbl(i), len("forPythonShowErrorsIn=")+1))-1
+end if
+if inStr(tbl(i), "forPythonWriteErrorsInLogFile=") > 0 then
+.forPythonWriteErrorsInLogFile.checked= GetCheckedValueIn(mid(tbl(i), len("forPythonWriteErrorsInLogFile=")+1))
+end if
+if inStr(tbl(i), "OpenHTAFilesWith=") > 0 then
+.OpenHTAFilesWith.selectedIndex = clng(mid(tbl(i), len("OpenHTAFilesWith=")+1))-1
+end if
+if inStr(tbl(i), "forPythonActivatePasteManager=") > 0 then
+.forPythonActivatePasteManager.checked= GetCheckedValueIn(mid(tbl(i), len("forPythonActivatePasteManager=")+1))
+end if
+if inStr(tbl(i), "forPythonActivateVersioningManager=") > 0 then
+.forPythonActivateVersioningManager.checked= GetCheckedValueIn(mid(tbl(i), len("forPythonActivateVersioningManager=")+1))
+end if
+if inStr(tbl(i), "forPythonActivateShortcutsManager=") > 0 then
+.forPythonActivateShortcutsManager.checked= GetCheckedValueIn(mid(tbl(i), len("forPythonActivateShortcutsManager=")+1))
+end if
+if inStr(tbl(i), "AddEndTagsAtFileLoading=") > 0 then
+.AddEndTagsAtFileLoading.checked= GetCheckedValueIn(mid(tbl(i), len("AddEndTagsAtFileLoading=")+1))
+end if
+if inStr(tbl(i), "AddEndTagsAtCodeCompletion=") > 0 then
+.AddEndTagsAtCodeCompletion.checked= GetCheckedValueIn(mid(tbl(i), len("AddEndTagsAtCodeCompletion=")+1))
+end if
+if inStr(tbl(i), "OpenHTAFilesWith=") > 0 then
+.OpenHTAFilesWith.selectedIndex = clng(mid(tbl(i), len("OpenHTAFilesWith=")+1))-1
+end if
+if inStr(tbl(i), "forPythonActivateAutomaticSave=") > 0 then
+.forPythonActivateAutomaticSave.checked= GetCheckedValueIn(mid(tbl(i), len("forPythonActivateAutomaticSave=")+1))
+end if
+if inStr(tbl(i), "forPythonAutomaticSaveInterval=") > 0 then
+.forPythonAutomaticSaveInterval.selectedIndex = clng(mid(tbl(i), len("forPythonAutomaticSaveInterval=")+1))-1
+end if
+if inStr(tbl(i), "forPythonHideSaveFiles=") > 0 then
+.forPythonHideSaveFiles.checked= GetCheckedValueIn(mid(tbl(i), len("forPythonHideSaveFiles=")+1))
+end if
+next
+' réinitialisation du fichier intermédiaire
+writeFile getIniFile, "", true
+document.form1.pages.focus()
+' sélection de l'onglet général
+pageDisplay("general")
+end with
+			End Sub
+
+Sub Document_OnKeyUp()
+intKeyCode = Window.Event.Keycode
+If intKeyCode = 27 Then form1_cancel
+End Sub
+
+sub pageChange()
+' au changement d'onglet sélectionné dans la liste des onglets
+pageDisplay(document.form1.pages.value)
+end sub
+
+sub form1_validate()
+' à la validation du formulaire
+' on va généré le texte à écrire dans le fichier ini intermédiaire
+dim s: s = "" & vbcrlf & ""
+on error resume next
+with document.form1
+'
+s = s + "WayOfActivatingForPython=" & .WayOfActivatingForPython.value & vbcrlf
+'
+s = s & "PythonExtensionsSupported=" & .PythonExtensionsSupported.value & vbcrlf
+'
+s = s & "Propose6padToOpenPythonFiles=" & GetCheckedValueOut(.Propose6padToOpenPythonFiles.checked) & vbcrlf
+'
+s =  s & "forPythonCheckLineSyntax=" & GetCheckedValueOut(.forPythonCheckLineSyntax.checked) & vbcrlf
+'
+s = s & "forPythonGoToLineOfError=" & GetCheckedValueOut(.forPythonGoToLineOfError.checked) & vbcrlf
+'
+s = s & "forPythonShowErrorsIn=" & .forPythonShowErrorsIn.value & vbcrlf
+'
+s = s & "forPythonWriteErrorsInLogFile=" & GetCheckedValueOut(.forPythonWriteErrorsInLogFile.checked) & vbcrlf
+'
+s = s & "OpenHTAFilesWith=" & .OpenHTAFilesWith.value & vbcrlf
+'
+s = s & "forPythonActivatePasteManager=" & GetCheckedValueOut(.forPythonActivatePasteManager.checked) & vbcrlf
+'
+s = s & "forPythonActivateVersioningManager=" & GetCheckedValueOut(.forPythonActivateVersioningManager.checked) & vbcrlf
+'
+s = s & "forPythonActivateShortcutsManager=" & GetCheckedValueOut(.forPythonActivateShortcutsManager.checked) & vbcrlf
+'
+s = s & "AddEndTagsAtFileLoading=" & GetCheckedValueOut(.AddEndTagsAtFileLoading.checked) & vbcrlf
+'
+s= s & "AddEndTagsAtCodeCompletion=" & GetCheckedValueOut(.AddEndTagsAtCodeCompletion.checked) & vbcrlf
+'
+s = s & "OpenHTAFilesWith=" & .OpenHTAFilesWith.value & vbcrlf
+'
+s = s & "forPythonActivateAutomaticSave=" & GetCheckedValueOut(.forPythonActivateAutomaticSave.checked) & vbcrlf
+'
+s = s & "forPythonAutomaticSaveInterval=" & .forPythonAutomaticSaveInterval.value & vbcrlf
+'
+s = s & "forPythonHideSaveFiles=" & GetCheckedValueOut(.forPythonHideSaveFiles.checked) & vbcrlf
+' on trouve le chemin vers le fichier ini intermédiaire
+sPath = document.location.pathname
+tbl = split(sPath, "\")
+redim preserve tbl(ubound(tbl)-1)
+sPath = join(tbl, "\")
+sPath = sPath & "\" & "com.ini"
+writeFile sPath, s, true
+window.close
+end with
+end sub
+
+sub form1_cancel()
+' bouton annuler
+' msgbox sKey
+window.close
+End sub
+
+function getIniFile()
+' trouve le chemin vers le fichier ini intermédiaire
+sPathIni = document.location.pathname
+tbl = split(sPathIni, "\")
+redim preserve tbl(ubound(tbl)-1)
+sPathIni = join(tbl, "\")
+sPathIni = sPathIni & "\" & "com.ini"
+getIniFile = sPathIni
+end function
+
+function GetCheckedValueIn(s)
+' détermine la valeur à envoyer à un control checkbox venant de l'extérieur
+dim v: v = ""
+s = trim(s)
+if s = "1" then
+v = "checked"
+elseif s = "0" then
+v = ""
+elseif IsNumeric(s) = true and clng(s) >= 1 then
+v = "checked"
+end if
+GetCheckedValueIn = v
+end function
+
+function GetCheckedValueOut(s)
+'' détermine la valeur du checkbox pour l'extérieur
+dim v: v="0"
+if s = true then
+v = "1"
+end if
+GetCheckedValueOut = v
+end function
+
+function readFile(sPath)
+' lit et renvoi le contenu d'un fichier
+s=""
+on error resume next
+set fso=CreateObject("Scripting.FileSystemObject")
+set fichier=fso.GetFile(sPath)
+set ts=fichier.OpenAsTextStream
+' ForReading
+s=ts.ReadAll
+ts.Close
+set ts=nothing
+set fichier=nothing
+set fso=nothing
+readFile = s
+end function
+
+Function WriteFile (sFilePath, sText, BlErase)
+'' écriture dans un fichier
+on error resume next
+set fs = CreateObject("Scripting.FileSystemObject")
+'
+' si on doit écraser ou pas
+if BlErase = true then
+Set FSStream = fs.CreateTextFile(sFilePath, True)
+FSStream.Write (sText) 
+FSStream.Close
+else ' il s'agit d'un ajout au fichier
+Set f = FS.GetFile(sFilePath)
+Set FSStream = f.OpenAsTextStream(8)
+FSStream.WriteLine sText
+FSStream.Close
+end if ' fin si BlErase
+Set FSStream = Nothing
+set f = nothing
+set FS = Nothing
+End Function
+
+function FormatResult(s)
+'
+dim s2: s2 = ""
+dim reg
+set reg = CreateObject("vbscript.regexp")
+reg.Global = true
+reg.IgnoreCase = true
+reg.Multiline = false
+reg.Pattern = "[^\r\n]+"
+set found = reg.Execute(s)
+if found.count > 0 then
+for i = 0 to found.count-1
+if i > 0 then s2 = s2 & ",,,"
+s2 = s2 & found(i).value
+next
+end if
+set found = nothing
+set reg = nothing
+' renvoi
+FormatResult = s2
+end function
+
+
+		</script>
+	</HEAD>
+	<BODY>
+
+<form name="form1" onSubmit="form1_validate()">
+
+<p>
+<label for="pages">Onglets:</label>
+<select name="pages" id="pages" onchange="pageChange()">
+<option value="general" selected="selected">Général</option>
+<option value="debugage">Débugage</option>
+<option value="completion">Complétion</option>
+<option value="advanced">Avancé</option>
+</select>
+</p>
+
+<div class="onglet" id="general">
+
+<p>
+<label for="WayOfActivatingForPython">Activer le forPython:</label>
+<select name="WayOfActivatingForPython" id="WayOfActivatingForPython">
+<option value="1">à l'ouverture de fichiers python</option>
+<option value="2">au démarrage de 6pad++</option>
+<option value="3">manuellement</option>
+</select>
+</p>
+
+<br />
+
+<p>
+<label for="PythonExtensionsSupported">Liste des extensions python supportés:</label>
+<input type="text" name="PythonExtensionsSupported" id="PythonExtensionsSupported" />
+</p>
+
+<br />
+
+<p>
+<input type="checkbox" name="Propose6padToOpenPythonFiles" id="Propose6padToOpenPythonFiles" />
+<label for="Propose6padToOpenPythonFiles">Proposer le 6pad++ pour ouvrir les fichiers python</label>
+</p>
+
+</div>
+
+<div class="onglet"  id="debugage">
+
+<p>
+<input type="checkbox" name="forPythonGoToLineOfError" id="forPythonGoToLineOfError" />
+<label for="forPythonGoToLineOfError">Se rendre automatiquement à la ligne de l'erreur détectée</label>
+</p>
+
+<br />
+
+<p>
+<input type="checkbox" name="forPythonCheckLineSyntax" id="forPythonCheckLineSyntax" />
+<label for="forPythonCheckLineSyntax">Vérification automatique de la syntaxe des lignes modifiées</label>
+</p>
+
+<br />
+
+<p>
+<label for="forPythonShowErrorsIn">Afficher les erreurs d'exécution dans:</label>
+<select name="forPythonShowErrorsIn" id="forPythonShowErrorsIn">
+<option value="1">la console de 6pad++</option>
+<option value="2">la fenêtre d'alerte</option>
+<option value="3">aucune fenêtre (mode silencieux)</option>
+</select>
+</p>
+
+<br />
+
+<p>
+<input type="checkbox" name="forPythonWriteErrorsInLogFile" id="forPythonWriteErrorsInLogFile" />
+<label for="forPythonWriteErrorsInLogFile">Inscrire le texte des erreurs d'exécution dans un fichier log externe</label>
+</p>
+
+</div>
+
+<div class="onglet" id="completion">
+
+<p>
+<input type="checkbox" name="AddEndTagsAtFileLoading" id="AddEndTagsAtFileLoading" />
+<label for="AddEndTagsAtFileLoading">Ajouter les balises de fin de block au chargement d'un document</label>
+</p>
+
+<br />
+
+<p>
+<input type="checkbox" name="AddEndTagsAtCodeCompletion" id="AddEndTagsAtCodeCompletion" />
+<label for="AddEndTagsAtCodeCompletion">Ajouter les balises de fin de bloc à la complétion de code</label>
+</p>
+
+<br />
+
+<p>
+<input type="checkbox" name="ActivateAutomaticCodeRefresh" id="ActivateAutomaticCodeRefresh" />
+<label for="ActivateAutomaticCodeRefresh">Activer le raffraîchissement automatique de code</label>
+</p>
+
+</div>
+
+<div class="onglet" id="advanced">
+
+<p>
+<label for="OpenHTAFilesWith">Ouvrir les formulaires HTA avec:</label>
+<select name="OpenHTAFilesWith" id="OpenHTAFilesWith">
+<option value="1">subprocess.pcall (méthode 1)</option>
+<option value="2">os.system (méthode 2)</option>
+</select>
+</p>
+
+<br />
+
+<p>
+<input type="checkbox" name="forPythonActivatePasteManager" id="forPythonActivatePasteManager" />
+<label for="forPythonActivatePasteManager">Activer le module 'paste.py' de gestion des collages alternatifs</label>
+</p>
+
+<br />
+
+<p>
+<input type="checkbox" name="forPythonActivateVersioningManager" id="forPythonActivateVersioningManager" />
+<label for="forPythonActivateVersioningManager">Activer le module 'versioning.py' de gestion des versions d'un même document</label>
+</p>
+
+<br />
+
+<p>
+<input type="checkbox" name="forPythonActivateShortcutsManager" id="forPythonActivateShortcutsManager" />
+<label for="forPythonActivateShortcutsManager">Activer le module 'manageShortcuts.py' de gestion des raccourcis clavier de menus</label>
+</p>
+
+<br />
+
+<p>
+<input type="checkbox" name="forPythonActivateAutomaticSave" id="forPythonActivateAutomaticSave" />
+<label for="forPythonActivateAutomaticSave">Sauvegarde automatique des modifications tous les</label>
+</p>
+
+<br />
+
+
+
+<p>
+<label for="forPythonAutomaticSaveInterval">Interval de la sauvegarde automatique:</label>
+<select name="forPythonAutomaticSaveInterval" id="forPythonAutomaticSaveInterval">
+</select>
+</p>
+
+<br />
+
+<p>
+<input type="checkbox" name="forPythonHideSaveFiles" id="forPythonHideSaveFiles" />
+<label for="forPythonHideSaveFiles">Masquer les fichiers des sauvegarde</label>
+</p>
+
+</div>
+
+<p>
+<input type="button" value="OK" onClick="form1_validate()" />
+<input type="button" value="Annuler" onClick="form1_cancel()" />
+</p>
+
+</form>
+
+	</BODY>
+</HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

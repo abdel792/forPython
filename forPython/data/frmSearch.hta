@@ -1,6 +1,6 @@
 <HTML>
 	<HEAD> 
-		<TITLE>Rechercher et remplacer avancé</TITLE>
+		<TITLE>Recherche avancée</TITLE>
 		<HTA:APPLICATION ID='Document1' APPLICATIONNAME='Document1' CAPTION='yes' CONTEXTMENU='yes' MAXIMIZEBUTTON='yes' MINIMIZEBUTTON='yes' NAVIGABLE='yes' SELECTION='yes' SHOWINTASKBAR='yes' SYSMENU='yes' WindowState='normal' >
 
 			<script language="VBScript">
@@ -8,36 +8,47 @@
 			Sub Window_onLoad
 ' au chargement de la fenêtre
 on error resume next
-if 1 = 0 then
 ' importation des paramètres anciens sauvegardés par le fichier intermédiaire
 s= vbcrlf & readFile(getIniFile) & vbcrlf
 tbl = split(s, vbcrlf)
 for i = 0 to ubound(tbl)
-if inStr(tbl(i), "textToReplace=") > 0 then
-document.form1.textToReplace.value = mid(tbl(i), len("textToReplace=")+1)
-elseif inStr(tbl(i), "replaceBy=") > 0 then
+if inStr(tbl(i), "textToSearch=") > 0 then
+document.form1.textToSearch.value = mid(tbl(i), len("textToSearch=")+1)
+end if
+if inStr(tbl(i), "replaceBy=") > 0 then
 document.form1.replaceBy.value = mid(tbl(i), len("replaceBy=")+1)
-elseif inStr(tbl(i), "searchType=") > 0 then
-v=mid(tbl(i), len("searchType=")+1)
-if v <> "" and v <> "0" then document.form1.searchType.value = v
-elseif inStr(tbl(i), "searchDirection=") > 0 then
-v=mid(tbl(i), len("searchDirection=")+1)
-if v <> "" and v <> "0" then document.form1.searchDirection.value = v
-elseif inStr(tbl(i), "searchZone=") > 0 then
-v = mid(tbl(i), len("searchZone=")+1)
-if v <> "" and v <> "0" then document.form1.searchZone.value = v
-elseif inStr(tbl(i), "respectCase=") > 0 then
-document.form1.respectCase.checked= CLng(mid(tbl(i), len("searchZone=")+1))
-elseif inStr(tbl(i), "allWordOnly=") > 0 then
-document.form1.allWordOnly.checked= CLng(mid(tbl(i), len("allWordOnly=")+1))
+end if
+if inStr(tbl(i), "searchType=") > 0 then
+document.form1.searchType.selectedIndex = clng(mid(tbl(i), len("searchType=")+1))-1
+end if
+if inStr(tbl(i), "searchDirection=") > 0 then
+document.form1.searchDirection.selectedIndex = clng(mid(tbl(i), len("searchDirection=")+1))-1
+end if
+if inStr(tbl(i), "searchZone=") > 0 then
+document.form1.searchZone.selectedIndex = clng(mid(tbl(i), len("searchZone=")+1))-1
+end if
+if inStr(tbl(i), "respectCase=") > 0 then
+document.form1.respectCase.checked= GetCheckedValueIn(mid(tbl(i), len("searchZone=")+1))
+end if
+if inStr(tbl(i), "allWordOnly=") > 0 then
+document.form1.allWordOnly.checked= GetCheckedValueIn(mid(tbl(i), len("allWordOnly=")+1))
 end if
 next
-end if
 ' réinitialisation du fichier intermédiaire
 writeFile getIniFile, "", true
 ' positionnement du focus
-document.form1.textToReplace.focus()
+document.form1.textToSearch.focus()
 			End Sub
+
+Sub Document_OnKeyUp()
+intKeyCode = Window.Event.Keycode
+If intKeyCode = 27 Then form1_cancel
+End Sub
+
+sub TextToSearch_onFocus()
+'
+document.form1.TextToSearch.select
+end sub
 
 sub form1_validate()
 ' à la validation du formulaire
@@ -47,13 +58,13 @@ dim v: v = ""
 on error resume next
 
 ' le texte à remplacer
-v = document.form1.textToReplace.value
+v = document.form1.textToSearch.value
 if v = "" then
 MsgBox "Vous devez obligatoirement taper le texte à remplacer avant d'effectuer cette action.", vbOKOnly+vbExclamation, "Erreur- texte à remplacer" 
-document.form1.textToReplace.focus()
+document.form1.textToSearch.focus()
 exit sub
 end if
-s = s & "textToReplace=" & v & vbcrlf
+s = s & "textToSearch=" & v & vbcrlf
 
 ' le texte de remplacement
 v = document.form1.replaceBy.value
@@ -98,6 +109,29 @@ redim preserve tbl(ubound(tbl)-1)
 sPathIni = join(tbl, "\")
 sPathIni = sPathIni & "\" & "com.ini"
 getIniFile = sPathIni
+end function
+
+function GetCheckedValueIn(s)
+' détermine la valeur à envoyer à un control checkbox venant de l'extérieur
+dim v: v = ""
+s = trim(s)
+if s = "1" then
+v = "checked"
+elseif s = "0" then
+v = ""
+elseif IsNumeric(s) = true and clng(s) >= 1 then
+v = "checked"
+end if
+GetCheckedValueIn = v
+end function
+
+function GetCheckedValueOut(s)
+'' détermine la valeur du checkbox pour l'extérieur
+dim v: v="0"
+if s = true then
+v = "1"
+end if
+GetCheckedValueOut = v
 end function
 
 function readFile(sPath)
@@ -166,39 +200,36 @@ end function
 
 <form name="form1" onSubmit="form1_validate">
 
-<label for="textToReplace">Texte à remplacer:</label>
-<input type="text" name="textToReplace" id="textToReplace">
+<table>
 
-<br />
+<tr><td>
+<label for="textToSearch">Texte à rechercher:</label>
+</td><td>
+<input type="text" name="textToSearch" id="textToSearch">
+</td></tr>
 
-<label for="replaceBy">Remplacer par:</label>
-<input type="text" name="replaceBy" id="replaceBy">
-
-<br />
-
-<p>
+<tr><td>
 <label for="searchType">Type de recherche:</label>
+</td><td>
 <select name="searchType" id="searchType">
 <option value="1">Texte brut</option>
 <option value="2">Expression régulière</option>
 </select>
-</p>
+</td></tr>
 
-<br />
-
-<p>
+<tr><td>
 <label for="searchDirection">Sens:</label>
+</td><td>
 <select name="searchDirection" id="searchDirection">
 <option value="1">Tous</option>
 <option value="2">Vers le bas</option>
 <option value="3">Vers le haut</option>
 </select>
-</p>
+</td></tr>
 
-<br />
-
-<p>
+<tr><td>
 <label for="searchZone">Zonne de recherche:</label>
+</td><td>
 <select name="searchZone" id="searchZone">
 <option value="1">le document courant</option>
 <option value="2">la classe courante</option>
@@ -206,28 +237,22 @@ end function
 <option value="4">le texte sélectionné</option>
 <option value="5">tous les onglets ouverts</option>
 </select>
-</p>
+</td></tr>
 
-<br />
-
-<p>
-Respecter la cass
+<tr><td colspan="2">
 <input type="checkbox" name="respectCase" id="respectCase" />
 <label for="respectCase">Respecter la cass</label>
-</p>
+</td></tr>
 
-<br />
-
-<p>
-Mot entier uniquement
+<tr><td colspan="2">
 <input type="checkbox" name="allWordOnly" id="allWordOnly" />
 <label for="allWordOnly">Mot entier uniquement</label>
-</p>
+</td></tr>
 
-<br />
+</table>
 
 <p>
-<input type="button" value="Remplacer tout" onClick="form1_validate()" />
+<input type="button" value="Rechercher" onClick="form1_validate()" />
 <input type="button" value="Annuler" onClick="form1_cancel()" />
 </p>
 
@@ -235,6 +260,17 @@ Mot entier uniquement
 
 	</BODY>
 </HTML>
+
+
+
+
+
+
+
+
+
+
+
 
 
 

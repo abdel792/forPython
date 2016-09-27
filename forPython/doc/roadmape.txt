@@ -1,0 +1,594 @@
+Créer un système de snippet avec demande d'entrée manuelle
+Il comportera:
+Dans outils, un menu snippet avec comme sous menus:
+o insérer un snippet
+o ouvrir le dossier des snippets
+un sous dossier nommé snippets contenant des fichiers txt
+A l'intérieur de chaque fichier de snippet, possibilité d'y mettre des tockens de la forme suivante:
+[|message;valeur_proposée|]
+Le nom du fichier sera proposé dans la liste des snippets à insérer
+
+x mettre à jour la liste des contributeurs dans le code
+
+x lors du renommage d'un fichier dans l'explorateur de projet, s'assurer que:
+le fichier de démarrage du projet soit modifié si nécessaire
+les imports soient ajustés si nécessaire
+
+résoudre le bug
+interpréteur 6pad
+lors de la complétion de code sans mot sous le curseur dans une zone à import,
+les modules du forPython ont des doublons plus de 2
+et apparemment aussi les modules classiques, mais 2 maximum
+
+finir la recherche et remplacement avancée
+par:
+le repositionnement dans la liste des zones
+l'activation du sens de la recherche
+
+lors de la création d'un nouveau module, 
+proposer des modèles de modules à partir d'un dossier model/page
+
+x se repencher sur l'inscription du nom du projet sur la barre de titre
+
+mise en activité de tous les menus de l'arborescence de l'exploration du projet
+
+
+
+dans l'explorateur de projet, créer des menus:
+Créer un nouveau dossier
+Créer un nouveau module
+
+trouver un moyen d'avertir l'utilisateur sur les triples quotes
+si présent sur la ligne courante
+si d'ouverture
+si de fermeture
+si curseur entre des triples quotes
+voici la démarche à suivre
+lors du déplacement à une ligne,
+vérifier si présence de triples quotes des deux types
+si l'un des deux effectivement présent,
+vérifier si triple quotes d'ouverture ou de fermeture
+et annonce
+
+faire la fonction 
+isModuleExistInInterpretor(moduleName, interpretorPath)
+qui va déterminer si un module nommé est importable dans un interpréteur parmi ceux installés
+requerera l'utilisation d'un fichier intermédiaire à exécuter dans l'interpréteur courant
+
+
+idée de captage des zones string
+lancer une recherche pour tout ce qui peut influencer les zones string
+A savoir:
+les retours à la ligne
+les guillemets multiples
+les appostrophes multiples
+les guillemets et appostrophes précédés de r
+les guillemets et appostrophes précédés de \ unique ou multiples
+les guillemets et appostrophes isolés
+puis faire un boucle pour analyser dans l'ordre ces résultat et faire les déductions qui s'imposent
+
+améliorer la vérification si erreur sur la ligne courante modifiée
+se pencher sur le cas :
+des  instructions se poursuivant sur plusieurs lignes
+x des triples quotes à tolérer
+x des triples quotes à interdire ou corriger automatiquement dans leurs nombres 
+X des end tag à ajuster
+des next à changer en end for
+
+finir la recherche avancée
+devra remplacer la recherche classique
+ainsi que les f3 et shift+f3
+
+Activer les menus liés au projet courant actuellement grisés:
+x enregistrer le projet sous
+x ajouter un module
+ajouter une interface graphique
+ajouter un fichier de base de données
+x supprimer du projet
+x paramètres de sauvegarde
+x explorateur de projet
+explorateur de classes
+x propriétés du projet
+
+faire la compilation de dll dans py2exe
+ainsi que la création d'un fichier exe unique
+et les proposer comme options lors de la création d'un exécutable
+
+
+
+
+proposer la compilation en un seul fichier avec py2exe
+
+	faire les créations d'exécutable par CX Freeze et Pyinstaller :
+
+directives de création d'un Explorateur de classes dans la gestion des projets
+au niveau 1:
+les fichier python
+au niveau 2:
+les fonctions et classes de premier niveau
+au niveau x:
+les sous-membres
+
+faire l'enregistrement des positions dans les documents ouverts d'un projet
+et proposer de restaurer ces positions au démarrage
+
+créer la notion de curseurs multiples dans le forPython
+faire dire un message explicite au changement de curseur du genre curseur 1, curseur 2
+faire en sorte que le basculement prenne en compte un onglet différent
+en cas de changement d'onglet,, le nom de la page doit être lu
+
+travailler sur la traduction en anglais
+D'abord des modules associés, ensuite du fichier init de forPython
+
+mettre en oeuvre la sauvegarde de sécurité telle que prévue dans la fenêtre des options
+
+proposer des fonctions alternatives pour sélectionner les blocs principaux
+A savoir:
+Etendre la sélection au bloc parent
+
+faire la commande exécuter jusqu'au curseur
+
+corriger la prise de focus après les fenêtres HTA
+Elle a toujours un problème
+
+améliorer l'intellicence
+dans les cas suivants:
+les déclarations multiples sur une seule ligne
+from x import x, x, x
+x1, x2, x3 = 0, 0, 0
+global x1, x2, x3
+la prise en compte des valeurs assignées aux variables
+les assignation dans les en-têtes de fonction
+
+améliorer la définition de mots clés
+par:
+une prise en compte des en-têtes de fonction et classe sur plusieurs lignes
+une prise en compte des commentaires documentations aux fonctions et classes
+
+rendre invisible les fichiers sav de sauvegarde de versions
+
+penser un outil de  gestion des bases de données
+
+penser un outils de gestion de la documentation
+
+penser une extension associée pour pouvoir déposer des macros dans un dossier
+
+x faire une sauvegarde complète et incrémentielle au projet courant
+
+x Changer l'emplacement du fichier de sauvegarde des racourci clavier personnalisés.
+Se trouve désormais à la racine de l'exécutable.
+
+x nettoyer l'ancien système des raccourcis clavier
+
+
+x regrouper les fichiers annexe utiles aux exécution dans un dossier data
+
+x donner la possibilité de faire dire quelle version de python est sélectionnée
+le faire dire dans les circonstances suivantes:
+la lecture du nom du bloc courant
+l'échec d'exécution d'un code
+
+
+
+x résolution de bug d'exécution dans un fichier non encore enregistré
+
+
+x dans le menu raccourcis clavier, créer deux menus pour:
+importer les configurations clavier
+exporter les configurations clavier
+
+
+x résolution de bug lors de l'exécution qui ne reconnaissait pas le dossier courant dans certains cas
+
+
+x faire une commande de rechargement des scripts
+
+x faire une commande de fermeture du projet courant
+doit ouvrir une fenêtre vierge
+doit apparaître dans le menu fichier à côté de fermer classique
+
+
+x faire des sayText dans tous les modules associés
+
+x lors de la complétion de code
+avec l'interpréteur 6pad, les fonctions du documents courant ne sont pas trouvées
+
+x un bug se produit lorsqu'on essai d'enregistrer une version dans une ancienne version
+résolu
+
+
+x gestion de projet:
+X se positionner dans l'arborescence sur le fichier courant
+x lors de la copie du chemin différencier le chemin absolu du chemin relatif
+
+x créer des menus insertion  pour: 
+x faire un import sur un fichier local
+
+x dans le menu python, insertion, créer un menu insérer une référence à un fichier 
+après le dialogue ouvrir, il devra être précisé si chemin absolu, relatif ou référence python
+
+x refaire des commandes plus fiables de sélection de la classe et de la fonction courante
+Proposer pour ce faire des fonctions alternatives sans supprimer les anciennes
+
+x rectification au menu lié au projet courant:
+faire un sous menu spécifique aux sauvegardes qui contiendra:
+sauvegardes:
+lancer la sauvegarde du projet
+paramètres de sauvegarde du projet
+
+x menus liés au projet courant:
+ajouter un module
+ajouter une interface graphique
+ajouter un fichier de base de données
+supprimer du projet
+paramètres de sauvegarde
+explorateur de projet
+explorateur de classes
+propriétés du projet
+
+
+xxx déjà faits
+
+
+x dans le module projet, faire l'affichage des projets récents
+a placer après le menu fichiers récents
+
+x faire la compilation avec le py2exe
+
+
+x L'intelllicence et la définition de mot clé prennent maintenant en compte:
+Les classes dans le documents en cours d'édition
+Les héritages de classe
+Les mots clés self et leurs membres
+Les modules importés sur la même ligne
+Les variables déclarées en en-tête de fonction
+Les commentaires/documentations aux fonctions et classes
+
+x forcer la sélection du texte des champs dans le formulaire rechercher et remplacer avancé
+
+x faire les traitement après le formulaire de recherche avancée
+
+x faire l'enregistrement de tous les onglets ouverts
+dans le menu fichier
+
+x faire le listage des fichiers d'aide chm des versions de python dans le menu  "aide"
+
+x corriger les traitements de la recherche et remplacement avancé
+
+x trouver des moyens de rendre l'installation de l'extension moins contraignante
+exemple:
+trouver automatiquement les modules associés suivant l'emplacement actuel
+embarquer la dll du control arborescence et y faire appel en première tentative
+chercher d'abord cette dll dans l'emplacement normal avant de se référer à l'emplacement courant
+
+x si pas de classe ou de fonction sous le curseur, donner l'ordre de masquer les options remplacer dans la classe ou fonction (formulaire rechercher et remplacer avancé)
+
+x résolution de bugs de ré&affichage des valeurs dans les fenêtre de recherche et remplacement avancé
+
+x résolution d'un bug dans le versioning qui apparaîssait lors de la désactivation et la réactivation
+deux menus apparaissaient
+
+x résolution de bug dans le formulaire rechercher et remplacer avancé
+des erreurs de syntaxe dans le code du formulaire
+
+x faire dire un message lors du basculement  de la lecture de l'indentation seulement si changement
+deux lignes de sayText ont été rajoutés à la fonction readIndentOnlyWhenChange
+
+xxx
+changement d'avant envoi à la progliste
+
+x lors du retrait et du rajout des balises de fin de bloc, trouver le moyen de prévenir qu'un commentaire se trouve sur la même ligne de fin que le commentaire de fin de bloc
+
+x lors du déplacement à la fin du bloc, faire dire le numéro de ligne
+
+x lors du déplacement délément en élément, faire dire le numéro de ligne
+
+penser un moyen de proposer des liens de téléchargement des versions de python quand manquant sur l'ordinateur courant
+
+x dans l'ajustement des indentations, prendre en compte que ce sont les lignes de relance qui soient trouvées
+
+lors du déplacement d'élément en élément, faire dire le nombre de ligne contenu dans l'élément
+
+x s'assurer de la reprise de focus après une fenêtre HTA
+
+x retrouver sa position après les ajouts de balises de fin de bloc
+trouver une ligne de non balise en remontant vers le haut
+y insérer un commentaire particulier
+réaliser les traitements
+
+x préciser la possibilité de l'ajout de l'exécution sur la sélection de certaines actions
+
+x apparemment la vérification de la syntaxe des lignes survit à la désactivation du forPython
+réglé
+
+x ajout de balises de fin de bloc
+le cas ou une ligne if a un or qui continue sur la ligne suivante
+produit une fermeture prématurée du bloc
+on devra vérifier si le deux points a bien été posé avant de chercher plus loin la position de fin de bloc
+isLineNotComplete
+
+x refreshCode, prendre en compte:
+le symbole - devant un chiffre
+les mots clés and or not 
+le cas de for
+
+dernière version du forPython
+https://dl.dropboxusercontent.com/u/8085041/forPython.zip
+
+faire dire plus de détails dans la lecture de la position courante
+le niveau d'indentation courant
+le numéro de la ligne courante
+le nombre de lignes à l'intérieur de la fonction courante
+la position par rapport à la ligne de début de la fonction courante
+la position de la fonction courante par rapport aux autres fonctions
+
+
+dans refreshCode, faire l'ajustement automatique des indentation sur 
+les lignes de commentaire
+les lignes vides
+
+pour trouver le type d'encodage, d'indentation, de retour à la ligne,
+faire des fonctions qui vont aller dans le menu identifier l'élément de menu qui est coché
+ces fonctions devront renvoyer des tuples texte affiché et valeur
+
+x amélioration de l'ajout de balises de fin de bloc au code
+
+x faire un menu propriétés dans le menu affichage qui va
+afficher
+le type d'encodage du document
+le type de tabulation
+le type de retour à la ligne
+
+x ajouter l'emplacement du fichier dans la fenêtre de propriétés
+
+x déplacement du dossier du projet à la racine du répertoire plugins
+
+x 6pad++ forPython
+fonctions modifiées jusqu'ici:
+x refreshCode
+x removeTags
+x addTags
+x adjustIndentsByTags
+x readIndentOnlyWhenChange
+x loadForPythonTools (menuReadIndentOnlyWhenChange
+x onKeyUp par un nouveau global et la parti lecture de la ligne courante
+x lastDifferentIndentLevel en global
+x getBlocsLimits
+x intégration du module paste au projet
+x intégration du module versioning au projet
+x intégration du module manageShortcuts au projet
+x à tous les fichier HTA, ajout de lafermeture par échap
+x création du fichier HTA des options
+fonctions ajoutées:
+nextLineWithSameLevel
+previousLineWithSameLevel
+Autres actions menées:
+x Renommage du fichier changes.txt en changelog.txt
+x Correction d'un bug multipliant le menu "activer le forPython
+x créer le menu localiser une version supplémentaire de python 
+
+x terminer la fenêtre des options
+
+fenêtre des options
+
+onglet général
+checkbox ActivateForPythonAt6padStart Activer le forPython au démarrage de 6pad++
+checkbox ActivateForPythonAtNewTabStart Activer le forPython à la création d'onglets vierges
+checkbox ActivateForPythonAtPythonFileOpening Activer le forPython à l'ouverture de fichiers python
+textbox PythonExtensionsSupported liste des extensions python supportés
+button ajouter le 6pad++ dans la liste des programmes ouvrant ces types de fichiers
+
+onglet débugage
+checkbox forPythonCheckLineSyntax vérifier automatiquement la syntaxe des lignes modifiées
+checkbox forPythonGoToLineOfError se rendre automatiquement à la ligne                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        de l'erreur détectée
+combobox forPythonShowErrorsIn Afficher les erreurs dans (Aucun, une liste, la console de python, la console de 6pad++, une fenêtre d'alerte, un nouvel onglet)
+checkbox forPythonWriteErrorsInLogFile Inscrire le texte des erreurs d'exécution dans un fichier log externe
+
+onglais compléments
+checkbox forPythonActivatePasteManager activer le module paste.py de collage de texte
+checkbox forPythonActivateVersioningManager activer le module versioning.py de gestion des versions de document
+checkbox forPythonActivateShortcutsManager activer le module manageShortcuts.py de gestion des raccourcis clavier de menu
+
+onglet code
+checkbox AddEndTagsAtFileLoading Ajouter les balises de fin de block au chargement d'un document
+checkbox AddEndTagsAtCodeCompletion Ajouter les balises de fin de bloc à la complétion de code
+checkbox Activer le raffraîchissement automatique de code
+
+onglet avancé
+combobox OpenHTAFilesWith ouvrir les formulaire HTA avec (méthode 1 (os.system), méthode 2 (subprocess.popen))
+checkbox  forPythonActivateAutomaticSave Activer la sauvegarde automatique des modifications
+combobox forPythonAutomaticSaveInterval AutomaticSaveInterval sauvegarder les modifications tous les...
+checkbox forPythonHideSaveFiles masquer les fichiers de sauvegarde
+combobox nombre de fichiers récents
+combobox nombre de projets récents
+combobox type de police
+combobox taille de police
+combobox langue de l'extension
+masquer les fichier sav de versions sauvegardées
+
+onglet projet
+textbox location par défaut pour les nouveaux projets
+parcourir...
+location du template de projet par défaut
+parcourir.
+checkbox au chargement d'un projet, ouvrir tous les fichiers python dans des onglets
+
+extension manageShortcuts
+faire des removeAccelerator si des raccourcis trouvés
+lors de l'assignation d'un raccourci non vide
+
+for python
+faire une fonctionnalité pour rapidement faire ou modifier la documentation aux fonctions et classes
+
+x idée  d'amélioration de l'extension manageShortcuts
+pour désactiver un menu, plutôt que de lui donner un raccourci vide, lui attribuer un raccourci dont on est sûr qu'il ne sera jamais utilisé ou qui est inactif 
+la touche F15 donne exactement ce que nous voulons car elle renvoi une chaîne vide
+
+x je crois que ce serait mieux de gérer les raccourcis par le nouveau control arborescence
+
+l'extension paste
+l'extension extensions
+
+x extension paste
+x mettre le collage python en deuxième position
+x ffaire prendre en compte le collage classique de 6pad++ après redémarrage
+x faire visualiser les deux premières lignes en cas de multiples lignes à coller lors du message d'invite
+x envoyer à J-F
+
+extension extensions:
+ajouter au label d'invite: vous pouvez activer ou désactiver les extensions disponibles.
+x lors de l'évènement colaps, faire dire le nombre de sous éléments
+lors du déplacement à un élément, faire dire sa position comme enfant de son parent
+éléments de menus sur un dossier:
+Ouvrir dans l'explorateur Windows
+Renommer
+Supprimer
+Copier le chemin
+Copier la référence python
+propriétés...
+éléments de menu sur un fichier python:
+Ouvrir dans 6pad++
+Renommer
+Supprimer
+Copier le chemin
+Copier la référence python
+propriétés...
+
+x ajuster la fonction getBlocsLimits
+finir l'extension versioning
+etudier le nouveau control d'arborescence
+
+6pad++
+nouvelle extension
+système de sauvegarde de version:
+fichier txt unique
+portant le nom du fichier sauvegardé + l'extension .save
+masqué
+contenant les infos structurées de la façon suivante:
+date et heure de sauvegarde
+sauvegarde
+séparés par la chaîne suivante:
+fklru'fu"à'_çtuejk
+encodé en UTF-8
+se matérialisant par les menus: 
+Versions du document sous menu
+Enregistrer une nouvelle version de ce fichier
+Restaurer une version de ce fichier
+Supprimer une version sauvegardée de ce fichier
+possibilité sera donnée de donner un nom aux versions sauvegardées
+date_et_heure, nom_donné, nombre_de_caractères
+
+6pad++
+nouvelle extension
+système d'activation et désactivation par interface rapide des extensions
+utiliser le nouveau control d'arborescence
+les dossier seront parcourrus à la recherche de fichiers à l'extension .py
+le control d'arborescence en traduira la hiérarchie
+la coche sur un noeud traduira l'activation ou nom de l'extension qu'il représente
+cependant, lorsqu'un fichier __init__.py sera détecté dans un dossier, le nom du dossier sera retenu et tous les autres fichiers py de ce dossier seront ignorés
+
+6pad++
+forPython
+créer un système de sauvegarde de version de fichier avec fichier à l'extension save dans le même dossier
+x terminer le addTags
+x le dernier bloc n'est pas cloturé
+x faire la retrouvaille de la position de départ par commentaire en fin de ligne
+x appliquer cette solution à la fonction de délimitation des blocs principaux
+6pad++ forPython
+fonctions modifiées jusqu'ici:
+refreshCode
+removeTags
+addTags
+adjustIndentsByTags
+readIndentOnlyWhenChange
+loadForPythonTools (menuReadIndentOnlyWhenChange
+onKeyUp par un nouveau global et la parti lecture de la ligne courante
+lastDifferentIndentLevel en global
+getBlocsLimits
+intégration du module paste au projet
+intégration du module versioning au projet
+intégration du module manageShortcuts au projet
+à tous les fichier HTA, ajout de lafermeture par échap
+création du fichier HTA des options
+fonctions ajoutées:
+nextLineWithSameLevel
+previousLineWithSameLevel
+
+6pad++
+faire dire plus d'infos de repérage à la fonction courante
+le numéro de la ligne sur le nombre total de lignes de la fonction
+le niveau de la ligne courante
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

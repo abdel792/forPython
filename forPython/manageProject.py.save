@@ -1,0 +1,3094 @@
+2016/08/21 12-54-44 sauvegarde                     # -*- coding: utf-8 -*-
+
+import sixpad as sp
+
+import os
+
+import sys
+
+import re
+
+import inspect
+
+from threading import Timer
+
+
+
+alert = sp.window.alert
+
+
+
+lastLevel = 0
+
+
+
+curPage = object()
+
+curProjectPath = ""
+
+curProjectFile = ""
+
+lstProjectPath = []
+
+# référence d'évènements à la fenêtre
+
+po = 0
+
+otc = 0
+
+
+
+def getMenuIndex(mnuName, mnuParent):
+
+	# renvoi la position/index d'un menu par son name, relativement à son parent
+
+	s = ""
+
+	for i in range(mnuParent.length):
+
+		if mnuParent[i].name == mnuName: return i
+
+		s = s + mnuParent[i].name + ", "
+
+	# end for
+
+	alert(s)
+
+	return - 1
+
+# end def
+
+
+
+def isAllReadyOpened(filePath):
+
+	""" vérifie si un fichier est déja ouvert dans un onglet
+
+		si oui, renvoi l'index de l'onglet.
+
+		sinon, renvoi -1"""
+
+	for i in range(len(sp.window.pages)):
+
+		p = sp.window.pages[i]
+
+		if os.path.samefile(filePath, p.file) == True:
+
+			return i
+
+		# end if
+
+	# end for
+
+	return - 1
+
+# end def
+
+
+
+def finditer2list(pt, s, flags = 0):
+
+	# recherche par regexp renvoyant un objet liste d'objets match
+
+	lst = []
+
+	found = re.finditer(pt, s, flags)
+
+	for e in found: lst.append(e)
+
+	return lst
+
+# end def
+
+
+
+def findall2list(pt, s, flags = 0):
+
+	# recherche par regexp renvoyant un objet liste de string trouvés
+
+	lst = []
+
+	found = re.findall(pt, s, flags)
+
+	for e in found: lst.append(e)
+
+	return lst
+
+# end def
+
+
+
+def closeCurrentProject():
+
+	""" ferme le projet actuellement ouvert """
+
+	global curProjectPath, curProjectFile
+
+	for p in sp.window.pages:
+
+		if p.file != "":
+
+			p.save()
+
+		# end if
+
+		p.close()
+
+	# end for
+
+	# réinitialisation des paramètres du projet
+
+	curProjectPath = ""
+
+	curProjectFile = ""
+
+# end def
+
+
+
+def openProject(novelty = False, fldPath = ""):
+
+	# ouvre un projet (nouveau ou existant)
+
+	fldName = ""
+
+	if novelty == False:
+
+		if fldPath == "": fldPath = sp.window.chooseFolder("Désignez le répertoire du projet python à ouvrir")
+
+	else:
+
+		fldPath = sp.window.chooseFolder("Désignez l'emplacement dans lequel créer le nouveau projet python.")
+
+	# end if
+
+	if fldPath == None or os.path.isdir(fldPath) == False: return
+
+	if novelty == False:
+
+		# on retient le nom de ce dossier
+
+		fldName = os.path.basename(fldPath)
+
+	else: # c'est un nouveau projet
+
+		# on demande le nom à donner au dossier
+
+		# dont on va vérifier la validité
+
+		pt = "^[\\w\\d_]+$"
+
+		fldName = sp.window.prompt("Tapez le nom du repertoire devant contenir le projet.\nAttention, ce nom doit respecter les standards de nom de variable en langage python.", "Nom du repertoire du projet", fldName)
+
+		if fldName == None or fldName == "": return
+
+		if re.match(pt, fldName):
+
+			fldName = fldName
+
+		else:
+
+			alert("Le nom tapé pour le répertoire python n'est pas valide.\nLe processus va à présent s'interrompre.", "Erreur- nom erroné")
+
+			return
+
+		# end if
+
+		# complétion du chemin du repertoire du projet
+
+		fldPath = os.path.join(fldPath, fldName)
+
+		# on crée ce dossier
+
+		os.mkdir(fldPath)
+
+		# vérification
+
+		if os.path.isdir(fldPath) == False:
+
+			alert("Impossible de créer le répertoire " + fldName + ".\nL'action va à présent s'interrompre.", "Erreur- création de dossier")
+
+			return
+
+		# end if
+
+	# end if
+
+	projectPath = fldPath
+
+	# on ferme le projet courant
+
+	closeCurrentProject()
+
+	# recensement des fichiers python dans le repertoire à ouvrir
+
+	lstFile = []
+
+	lstName = []
+
+	for f in os.listdir(fldPath):
+
+		ext = f.split(".")[-1].lower()
+
+		# si fichier python
+
+		if ext == "py" or ext == "pyw":
+
+			# on retient le fichier python
+
+			lstFile.append(os.path.join(fldPath, f))
+
+			lstName.append(f)
+
+		# end if
+
+	# end for
+
+	# si pas de fichier python dans ce dossier
+
+	if len(lstFile) == 0:
+
+		# on en crée un automatiquement
+
+		# après demande à l'utilisateur
+
+		if novelty == False:
+
+			if sp.window.confirm("Il n'existe pas de fichier python à l'emplacement que vous avez désigné.\nVoulez-vous continuer cette action par la création automatique d'un fichier __init__.py dans le repertoire \n" + fldPath + " ?", "Fichiers python introuvables") == 0: return
+
+		# end if
+
+		path = os.path.join(fldPath, "__init__.py")
+
+		if os.path.isfile(path) == False: writeFile(path, "# -*- coding: utf-8 -*-")
+
+		lstFile.append(path)
+
+		lstName.append("__init__.py")
+
+	# end if
+
+	# initialisation de paramètres
+
+	projectName = ""
+
+	projectStartingFile = ""
+
+	projectType = ""
+
+	# recherche du fichier des paramètres du projet python
+
+	projectFile = os.path.join(fldPath, "project.pyproj")
+
+	if os.path.isfile(projectFile) == False:
+
+		# il n'existe pas, on va le créer
+
+		# mais d'abord renseignement de quelques paramètres
+
+		s = ""
+
+		# demande de désignation du fichier de démarrage du projet
+
+		i = sp.window.choice("Choisissez le fichier de démarrage du projet", "Fichier de démarrage", lstName)
+
+		if i >= 0: projectStartingFile = lstName[i]
+
+		s += "projectStartingFile=" + projectStartingFile + "\r\n"
+
+		# demande de détermination du nom du projet
+
+		projectName = projectStartingFile.split(".")[0]
+
+		projectName = sp.window.prompt("Tapez le nom du projet", "Nom du projet", fldName, [fldName, projectName])
+
+		if projectName == "" or projectName == None: projectName = fldName
+
+		s += "projectName=" + projectName + "\r\n"
+
+		# demande de détermination du type du projet (exe, dll, script, etc)
+
+		projectType = "exe"
+
+		s += "projectType=" + projectType + "\r\n"
+
+		# création
+
+		writeFile(projectFile, s)
+
+	# end if
+
+	# lecture du fichier de projet
+
+	s = "\r\n" + readFile(projectFile, )
+
+	projectName = finditer2list("projectName=([^\\r\\n]*)", s, re.I)[0].group(1)
+
+	projectStartingFile = finditer2list("projectStartingFile=([^\\r\\n]*)", s, re.I)[0].group(1)
+
+	projectType = finditer2list("projectType=([^\\r\\n]*)", s, re.I)[0].group(1)
+
+	# ouverture des fichiers python dans les onglets
+
+	for f in lstFile:
+
+		p = sp.window.open(f)
+
+	# end for
+
+	# sélection de l'onglet du fichier de démarrage
+
+	for p in sp.window.pages:
+
+		if p.name == projectStartingFile:
+
+			p.focus()
+
+			break
+
+		# end if
+
+	# end for
+
+	# assignation de variables globales
+
+	curProjectPath = projectPath
+
+	curProjectFile = projectFile
+
+	# ajout de ce projet à la liste des projets récents
+
+	addToRecentProjects(projectPath)
+
+	# actualisation de la liste des projets récents
+
+	displayRecentProjectsInMenu()
+
+	# affichage des outils contextuels de projet
+
+	displayContextualProjectTools(projectPath)
+
+# end def
+
+
+
+def openNewProject():
+
+	""" Crée un nouveau projet """
+
+	openProject(True)
+
+# end def
+
+
+
+def openRecentProject(menuIndex):
+
+	""" ouvre un projet récent """
+
+	def openAProject():
+
+		global lstProjectPath
+
+		openProject(False, lstProjectPath[menuIndex])
+
+	# end def
+
+	return openAProject
+
+	
+
+# end def
+
+
+
+def saveProjectAs():
+
+	""" enregistre le projet sous """
+
+	global curProjectPath
+
+	# si projet non actuellement désigné
+
+	if curProjectPath == "": return
+
+	# demande de désignation de l'emplacement où faire une copie du projet courant
+
+	fldPath = sp.window.chooseFolder("Désignez l'emplacement dans lequel enregistrer le projet '" + os.path.basename(curProjectPath) + "'.")
+
+	if fldPath == None or fldPath == "": return
+
+	# COPIE DE REPERTOIRE
+
+	alert("suite des traitements encore en construction")
+
+# end def
+
+
+
+def executeProject():
+
+	""" exécute le projet """
+
+	global curProjectPath
+
+	alert("exécution du projet encore en construction")
+
+# end def
+
+
+
+def openFileOrFolder(item):
+
+	# ouverture du fichier dans un onglet, si pas déja ouvert
+
+	global tv
+
+	# index si dans une page ouverte
+
+	i = isAllReadyOpened(item.value)
+
+	# comparaison
+
+	if i >= 0:
+
+		# le fichier est ouvert dans l'onglet i
+
+		sp.window.pages[i].focus
+
+	else: # le fichier n'est pas encore ouvert
+
+		sp.window.open(item.value)
+
+	# end if
+
+	# on referme l'arborescence
+
+	# tv.close()
+
+# end def
+
+
+
+def rename(item):
+
+	name = os.path.basename(item.value)
+
+	# demande de modification
+
+	name = sp.window.prompt("Renommer:", "Renommer", name)
+
+	alert("suite du renommage encore en construction")
+
+# end def
+
+
+
+def delete(item):
+
+	# demande de confirmation
+
+	if sp.window.confirm("Êtes-vous sur de vouloir supprimer l'élément'" + os.path.basename(item.value) + "' du projet ?", "Suppression") == 0: return
+
+	alert("suite de la suppression encore en construction")
+
+# end def
+
+
+
+def copyPath(item):
+
+	""" Copie du chemin de l'élément sélectionné dans l'arborescence """
+
+	sp.setClipboardText(item.value)
+
+# end def
+
+
+
+def copyRef(item):
+
+	""" Copie de la référence python de l'élément sélectionné dans l'arborescence """
+
+	is6padInterpretor = (sp.getConfig("curPythonVersion", "") == "6padPythonVersion")
+
+	ref = getModuleRef(item.value, is6padInterpretor)
+
+	# retrait d'extension
+
+	ref = re.sub("\\.py$", "", ref, 0, re.I)
+
+	ref = re.sub("\\.pyw$", "", ref, 0, re.I)
+
+	# copie dans le presse-papier
+
+	sp.setClipboardText(ref)
+
+# end def
+
+
+
+def properties(item):
+
+	alert("propriétés encore en construction")
+
+# end def
+
+
+
+def delayMsg2():
+
+	# retardement de la lecture d'un message
+
+	global tmr, msg
+
+	sp.say(msg)
+
+	# relance du timer 
+
+	# tmr.run() # pas nécessaire
+
+# end def
+
+
+
+def delayMsg1(s, delay):
+
+	global msg
+
+	msg = s
+
+	tmr = Timer(delay, delayMsg2)
+
+	tmr.start() # lancement
+
+# end def
+
+
+
+def readFile(filePath, _mode = 'r'):
+
+	# lit et renvoi le contenu d'un fichier texte
+
+	fil = open(filePath, _mode)
+
+	s = fil.read()
+
+	fil.close() # Fermeture du fichier
+
+	return s
+
+# end def
+
+
+
+def writeFile(filePath, s, _mode = 'w'):
+
+	# Ecrit dans un fichier
+
+	fil = open(filePath, _mode)
+
+	fil.write(s)
+
+	fil.close() # Fermeture du fichier
+
+# end def
+
+
+
+def getCurModuleDir():
+
+	# renvoi le chemin vers le dossier contenant le script courant
+
+	path = inspect.getfile(inspect.currentframe())
+
+	return os.path.dirname(path)
+
+# end def-
+
+
+
+def getModuleRef(modPath, is6padInterpretor = True):
+
+	# renvoi la référence à un module  à partir de son chemin
+
+	global curProjectPath
+
+	# décomposition du chemin vers le module dans une liste
+
+	lst = modPath.split("\\")
+
+	rep = ""
+
+	# si l'interpréteur sélectionné est celui du 6pad++
+
+	if is6padInterpretor == True:
+
+		appPath = sp.appdir
+
+		# quel répertoire ? (lib ou plugins ?) lib ou plugins ?
+
+		if modPath.find(os.path.join(appPath, "lib")) >= 0: rep = "lib"
+
+		elif modPath.find(os.path.join(appPath, "plugins")) >= 0: rep = "plugins"
+
+		else: return ""
+
+		rep = os.path.join(appPath, rep)
+
+	else: # l'interpréteur sélectionné n'est pas celui du 6pad++
+
+		rep = curProjectPath
+
+	# end if
+
+	# on trouve la longueur limite du répertoire de base du projet
+
+	limit = len(rep.split("\\"))
+
+	# on prend la partie au dela
+
+	lst = lst[limit:]
+
+	# on renvoi cette partie en la joignant par des points
+
+	return ".".join(lst)
+
+# end def
+
+
+
+def getCurrentLevel(item):
+
+	# renvoi le niveau de l'item dans la hiérarchie de larborescence
+
+	level = 1
+
+	parent = item.parentNode
+
+	while(parent != None):
+
+		parent = parent.parentNode
+
+		level = level + 1
+
+	# end while
+
+	return level
+
+# end def
+
+
+
+def onPageOpened(newPage):
+
+	""" A l'ouverture d'une nouvelle page"""
+
+	i = 0
+
+# end def
+
+
+
+def onTitleChange(text):
+
+	""" lors du changement de titre """
+
+	global curPage
+
+	# on va ajouter au titre le nom du projet
+
+	text = sp.window.curPage.name + " - " + os.path.basename(curProjectPath) + ""
+
+	if curPage != sp.window.curPage:
+
+		sp.say(text, True)
+
+		curPage = sp.window.curPage
+
+	# end if
+
+	# renvoi
+
+	sp.window.title = text
+
+	return text
+
+# end def
+
+
+
+def onPageActivated(page):
+
+	""" A la prise de focus d'une page """
+
+	# on va mettre le nom du projet dans le titre de la fenêtre
+
+	sp.window.messageBeep(0)
+
+	name = sp.window.title
+
+	name = name + " [" + os.path.basename(curProjectPath) + "]"
+
+	sp.window.title = name
+
+# end def
+
+
+
+def onCheck(dialog, item):
+
+	# au cochage ou décochage
+
+	i = 0
+
+# end def
+
+
+
+def onSelect(dialog, item):
+
+	# à la sélection d'un noeud
+
+	global lastLevel
+
+	# lecture de son niveau si changement de noeud
+
+	level = getCurrentLevel(item)
+
+	if level != lastLevel:
+
+		#  désactivé sp.say("Niveau " + str(level))
+
+		lastLevel = level
+
+	# end if
+
+	# désactivé sp.say(s)
+
+# end def
+
+
+
+def onExpand(dialog, item):
+
+	# à l'expension d'un noeud
+
+	sp.say(item.text, False)
+
+	try: sp.say(str(len(item.childNodes)) + " items")
+
+	except: pass
+
+	return True
+
+# end def
+
+
+
+def onContextMenu(dialog, item):
+
+	# au menu contextuel sur un noeud
+
+	# constitution de la liste de base des éléments du menu contextuel
+
+	lst = ["Renommer", "Supprimer", "Copier le chemin", "Copier la référence python", "Propriétés..."]
+
+	# selon si dossier ou fichier python
+
+	if os.path.isdir(item.value):
+
+		lst.insert(0, "Ouvrir dans l'explorateur Windows")
+
+		# affichage du menu contextuel
+
+		i = sp.window.showPopupMenu(lst)
+
+		if i == -1:
+
+			return
+
+		# end if
+
+	elif os.path.isfile(item.value):
+
+		lst.insert(0, "Afficher le code")
+
+		# affichage du menu contextuel
+
+		i = sp.window.showPopupMenu(lst)
+
+		if i == -1:
+
+			return
+
+		elif i == 0:
+
+			openFileOrFolder(item)
+
+		elif i == 1:
+
+			rename(item)
+
+		elif i == 2:
+
+			delete(item)
+
+		elif i == 3:
+
+			copyPath(item)
+
+		elif i == 4:
+
+			copyRef(item)
+
+		elif i == 5:
+
+			properties(item)
+
+		# end if
+
+	else:
+
+		return
+
+	# end if
+
+# end def
+
+
+
+def loadTV(tv, rootPath):
+
+	# chargement de l'arborescence
+
+	# à partir du dossier racine du projet
+
+	if os.path.isdir(rootPath):
+
+		item = tv.root.appendChild(os.path.basename(rootPath), rootPath)
+
+		browseFolders(item)
+
+	# end if
+
+	# ajout d'évènements
+
+	tv.addEvent("expand", onExpand)
+
+	tv.addEvent("contextMenu", onContextMenu)
+
+	tv.addEvent("check", onCheck)
+
+	tv.addEvent("select", onSelect)
+
+# end def
+
+
+
+def browseFolders(item):
+
+	# parcours des sous-éléments d'un dossier
+
+	# dans l'optique de les ajouter à l'arborescence
+
+	f = ""
+
+	pt = "(.+)\\.(py|pyw|pyx)$"
+
+	found = os.listdir(item.value)
+
+	if found == None or len(found) == 0: return
+
+	# premièrement, recherche des sous-dossiers
+
+	for f in found:
+
+		try:
+
+			if os.path.isdir(os.path.join(item.value, f)):
+
+				subItem = item.appendChild(f, os.path.join(item.value, f))
+
+				browseFolders(subItem)
+
+			# end if
+
+		except: pass
+
+	# end for
+
+	# puis, recherche des fichiers python du dossier courant
+
+	for f in found:
+
+		if re.match(pt, f, re.I):
+
+			subItem = item.appendChild(f, os.path.join(item.value, f))
+
+			# si l'item représente le document courant, on le sélectionne
+
+			try:
+
+				if os.path.samefile(sp.window.curPage.file, subItem.value):
+
+					subItem.select()
+
+				# end if
+
+			except: pass
+
+		# end if
+
+	# end for
+
+# end def
+
+
+
+def showProjectExplorer():
+
+	""" affiche l'explorateur des fichiers du projet """
+
+	global curProjectPath, tv
+
+	# le chemin du projet
+
+	rootPath = curProjectPath
+
+	if rootPath == "": rootPath = os.path.dirname(sp.window.curPage.file)
+
+	# affichage
+
+	tv = qc.TreeViewDialog.open(title = "Explorateur de projet", hint = "Gérer les fichier python du projet", modal = False, multiple = False, okButtonText = "", cancelButtonText = "Fermer")
+
+	# chargement
+
+	loadTV(tv, rootPath)
+
+# end def
+
+
+
+def showClassesExplorer():
+
+	""" ouvre l'explorateur de classes du projet """
+
+	i = 0
+
+# end def
+
+
+
+def addToRecentProjects(projectPath):
+
+	""" enregistre le projet récent """
+
+	# recherche des fichiers récents dans le fichier de configuration
+
+	s = sp.getConfig("recentPythonProjects", "")
+
+	lst = s.split("|") # transfert dans une liste
+
+	# on retire une éventuelle présence de ce chemin déjà présent dans la liste des chemins
+
+	try: lst.remove(projectPath)
+
+	except: pass
+
+	# on ajoute le nouvel élément au début
+
+	lst.insert(0, projectPath)
+
+	# si la liste a plus de 15 éléments, on la réduit
+
+	if len(lst) > 15:
+
+		lst = lst[0:14]
+
+	# end if
+
+	# reconstitution et écriture dans le fichier de configuration
+
+	s = "|".join(lst)
+
+	sp.setConfig("recentPythonProjects", s)
+
+# end def
+
+
+
+def displayRecentProjectsInMenu():
+
+	""" peuple le menu projet récents """
+
+	global menuRecentProjects, lstProjectPath
+
+	mnu = menuRecentProjects # simplification
+
+	# vidage de la liste des chemins de projet
+
+	lstProjectPath = []
+
+	# vidage du menu
+
+	i = mnu.length - 1
+
+	while (i >= 0):
+
+		mnu[i].remove()
+
+		i -= 1
+
+	# end while
+
+	# recherche des fichiers récents dans le fichier de configuration
+
+	s = sp.getConfig("recentPythonProjects", "")
+
+	lst = s.split("|") # transfert dans liste
+
+	# création des menus à la volée
+
+	j = -1
+
+	for i in range(len(lst)):
+
+		if os.path.isdir(lst[i]) == True:
+
+			j += 1
+
+			mnu.add(label = os.path.basename(lst[i]) + " de " + os.path.dirname(lst[i]), action = openRecentProject(j))
+
+			# ajout à la liste globale
+
+			lstProjectPath.append(lst[i])
+
+		# end if
+
+		# contrôle de la limite (10 éléments maximum)
+
+		if j >= 9: break
+
+	# end for
+
+# end def
+
+
+
+def displayContextualProjectTools(projectPath):
+
+	# charge et affiche les outils contextuels d'un projet à ouvrir
+
+	global curProjectPath, curProjectFile
+
+	# enregistrement du chemin du projet
+
+	curProjectPath = projectPath
+
+	# vérification que ces outils n'ont pas déjà été affichés
+
+	if sp.window.menus["project"] != None: return
+
+	# ajout d'évènement à la fenêtre
+
+	po = sp.window.addEvent("pageOpened", onPageOpened)
+
+	otc = sp.window.addEvent("title", onTitleChange)
+
+	# création du menu projet
+
+	i = getMenuIndex("forPython", sp.window.menus)
+
+	if i < 0: i = 4
+
+	mnu = sp.window.menus.add(label = "Projet", name = "project", submenu = True, index = i + 1)
+
+	# menu d'ajout de module
+
+	m = mnu.add(label = "Ajouter un module python", name = "projectAddModule")
+
+	m.enabled = False
+
+	# menu d'ajout d'interface graphique
+
+	m = mnu.add(label = "Ajouter une interface graphique", name = "projectAddGraphicInterface")
+
+	m.enabled = False
+
+	# menu d'ajout de fichier de base de données
+
+	m = mnu.add(label = "Ajouter un fichier de base de données", name = "projectAddDatabaseFile")
+
+	m.enabled = False
+
+	# menu de suppression du projet
+
+	m = mnu.add(label = "Supprimer le module courant du projet", name = "projectDeleteModule")
+
+	m.enabled = False
+
+	# menu des paramètres de sauvegarde du projet
+
+	m = mnu.add(label = "Paramètres de sauvegarde du projet python", name = "projectSaveParams")
+
+	m.enabled = False
+
+	# menu d'exploration des fichiers du projet
+
+	mnu.add(label = "Explorateur de projet python", action = showProjectExplorer, name = "projectExplorer")
+
+	# menu d'exploration des classes du projet
+
+	m = mnu.add(label = "Explorateur de classes python", action = showClassesExplorer, name = "projectExplorer")
+
+	m.enabled = False
+
+	# menu des propriétés du projet
+
+	m = mnu.add(label = "Propriétés du projet python", name = "projectProperties")
+
+	m.enabled = False
+
+	# dans le menu fichier
+
+	mnu = sp.window.menus.file
+
+	# menu enregistrer le projet sous
+
+	i = getMenuIndex("saveAs", mnu)
+
+	m = mnu.add(label = "Enregistrer le projet python sous...", name = "saveProjectAs", action = saveProjectAs, index = i + 1)
+
+	m.enabled = False
+
+	# dans le menu python
+
+	if sp.window.menus["forPython"]["execution"] != None:
+
+		mnu = sp.window.menus["forPython"]["execution"]
+
+		# ajout du menu exécuter le projet
+
+		m = mnu.add(label = "Exécuter le projet", name = "executeProject", action = executeProject)
+
+		m.enabled = False
+
+	# end if
+
+# end def
+
+
+
+def hideContextualProjectTools():
+
+	# masque les outils contextuel liés à un projet ouvert
+
+	mnu = sp.window.menus
+
+	if mnu["project"] != None: mnu["project"].remove()
+
+	# dans le menu fichier
+
+	if sp.window.menus["saveProjectAs"] != None:
+
+		sp.window.menus["saveProjectAs"].remove()
+
+	# end if
+
+	# dans le menu python
+
+	try: sp.window.menus["forPython"]["execution"]["executeProject"].remove()
+
+	except: pass
+
+	# retrait d'évènements à l'objet window
+
+	try: sp.window.removeEvent("pageOpened", po)
+
+	except: pass
+
+	try: sp.window.removeEvent("title", otc)
+
+	except: pass
+
+	# retraits d'évènements aux objets pages
+
+	for page in sp.window.pages:
+
+		try: page.removeEvent(page.__setattr__("opa"))
+
+		except: pass
+
+	# end for
+
+# end def
+
+
+
+def loadManageProjectTools():
+
+	# charge les outils liés au manageProject
+
+	global menuRecentProjects
+
+	# création des menu visible en tout temps
+
+	# dans le menu fichier
+
+	mnu = sp.window.menus["file"]
+
+	# menu projet python dans nouveau
+
+	mnu[0].add(label = "Projet python", name = "newPythonProject", action = openNewProject)
+
+	# on modifie le label pour être synchrone
+
+	mnu[0][0].label = "Fichier"
+
+	# menu ouvrir un projet
+
+	i = getMenuIndex("open", mnu)
+
+	mnu.add(label = "Ouvrir un projet python", name = "openPythonProject", index = i + 1, action = openProject)
+
+	# les menus des projets récents
+
+	i = getMenuIndex("close", mnu)
+
+	menuRecentProjects = mnu.add(label = "Projets récents", name = "recentPythonProjects", index = i, submenu = True)
+
+	displayRecentProjectsInMenu()
+
+# end def
+
+
+
+def unloadManageProjectTools():
+
+	# retrait des outils liés au manageProject
+
+	mnu = sp.window.menus
+
+	# les outils contextuels
+
+	hideContextualProjectTools()
+
+	# dans le menu fichier
+
+	if mnu.file[0]["newPythonProject"] != None: mnu.file[0]["newPythonProject"].remove()
+
+	if mnu.file["openPythonProject"] != None: mnu.file["openPythonProject"].remove()
+
+	if mnu.file["recentPythonProjects"] != None: mnu.file["recentPythonProjects"].remove()
+
+# end def
+
+
+
+# importation du control arborescence
+
+try:
+
+	import qc6paddlgs as qc
+
+except:
+
+	try:
+
+		modName = getModuleRef(getCurModuleDir()) + "." + "qc6paddlgs"
+
+		exec("import " + modName + " as qc")
+
+	except:
+
+		sp.window.alert("Le fichier qc6paddlg.pyd est introuvable.\nVeuillez le copier à la racine du dossier plugins pour que ce module puisse fonctionner correctement.", "Erreur dans le module manageShortcuts")
+
+	# end try
+
+# end try
+
+fklru'fuYYDà'_Bçtuejk2016/08/19 07-07-29 sauvegarde                     # -*- coding: utf-8 -*-
+
+import sixpad as sp
+
+import os
+
+import sys
+
+import re
+
+import inspect
+
+from threading import Timer
+
+try:
+
+	import qc6paddlgs as qc
+
+except:
+
+	import forPython.qc6paddlgs as qc
+
+# end try
+
+
+
+alert = sp.window.alert
+
+
+
+lastLevel = 0
+
+
+
+curProjectPath = ""
+
+curProjectFile = ""
+
+
+
+def getMenuIndex(mnuName, mnuParent):
+
+	# renvoi la position/index d'un menu par son name, relativement à son parent
+
+	s = ""
+
+	for i in range(mnuParent.length):
+
+		if mnuParent[i].name == mnuName: return i
+
+		s = s + mnuParent[i].name + ", "
+
+	# end for
+
+	alert(s)
+
+	return - 1
+
+# end def
+
+
+
+def isAllReadyOpened(filePath):
+
+	""" vérifie si un fichier est déja ouvert dans un onglet
+
+		si oui, renvoi l'index de l'onglet.
+
+		sinon, renvoi -1"""
+
+	for i in range(len(sp.window.pages)):
+
+		p = sp.window.pages[i]
+
+		if os.path.samefile(filePath, p.file) == True:
+
+			return i
+
+		# end if
+
+	# end for
+
+	return - 1
+
+# end def
+
+
+
+def finditer2list(pt, s, flags = 0):
+
+	# recherche par regexp renvoyant un objet liste d'objets match
+
+	lst = []
+
+	found = re.finditer(pt, s, flags)
+
+	for e in found: lst.append(e)
+
+	return lst
+
+# end def
+
+
+
+def findall2list(pt, s, flags = 0):
+
+	# recherche par regexp renvoyant un objet liste de string trouvés
+
+	lst = []
+
+	found = re.findall(pt, s, flags)
+
+	for e in found: lst.append(e)
+
+	return lst
+
+# end def
+
+
+
+def closeCurrentProject():
+
+	""" ferme le projet actuellement ouvert """
+
+	global curProjectPath, curProjectFile
+
+	for p in sp.window.pages:
+
+		if p.file != "":
+
+			p.save()
+
+		# end if
+
+		p.close()
+
+	# end for
+
+	# réinitialisation des paramètres du projet
+
+	curProjectPath = ""
+
+	curProjectFile = ""
+
+# end def
+
+
+
+def openProject(novelty = False):
+
+	# ouvre un projet (nouveau ou existant)
+
+	fldName = ""
+
+	fldPath = ""
+
+	if novelty == False:
+
+		fldPath = sp.window.chooseFolder("Désignez le répertoire du projet python à ouvrir")
+
+	else:
+
+		fldPath = sp.window.chooseFolder("Désignez l'emplacement dans lequel créer le nouveau projet python.")
+
+	# end if
+
+	if fldPath == None or os.path.isdir(fldPath) == False: return
+
+	if novelty == False:
+
+		# on retient le nom de ce dossier
+
+		fldName = os.path.basename(fldPath)
+
+	else: # c'est un nouveau projet
+
+		# on demande le nom à donner au dossier
+
+		# dont on va vérifier la validité
+
+		pt = "^[\\w\\d_]+$"
+
+		fldName = sp.window.prompt("Tapez le nom du repertoire devant contenir le projet.\nAttention, ce nom doit respecter les standards de nom de variable en langage python.", "Nom du repertoire du projet", fldName)
+
+		if fldName == None or fldName == "": return
+
+		if re.match(pt, fldName):
+
+			fldName = fldName
+
+		else:
+
+			alert("Le nom tapé pour le répertoire python n'est pas valide.\nLe processus va à présent s'interrompre.", "Erreur- nom erroné")
+
+			return
+
+		# end if
+
+		# complétion du chemin du repertoire du projet
+
+		fldPath = os.path.join(fldPath, fldName)
+
+		# on crée ce dossier
+
+		os.mkdir(fldPath)
+
+		# vérification
+
+		if os.path.isdir(fldPath) == False:
+
+			alert("Impossible de créer le répertoire " + fldName + ".\nL'action va à présent s'interrompre.", "Erreur- création de dossier")
+
+			return
+
+		# end if
+
+	# end if
+
+	projectPath = fldPath
+
+	# on ferme le projet courant
+
+	closeCurrentProject()
+
+	# recensement des fichiers python dans ce repertoire
+
+	pt = "\\.(py|pyw)$"
+
+	lstFile = []
+
+	lstName = []
+
+	for f in os.listdir(fldPath):
+
+		if re.match(pt, f, re.I):
+
+			# on retient le fichier python
+
+			lstFile.append(os.path.join(fldPath, f))
+
+			lstName.append(f)
+
+		# end if
+
+	# end for
+
+	# si pas de fichier python dans ce dossier
+
+	if len(lstFile) == 0:
+
+		# on en crée un automatiquement
+
+		# après demande à l'utilisateur
+
+		if novelty == False:
+
+			if sp.window.confirm("Il n'existe pas de fichier python à l'emplacement que vous avez désigné.\nVoulez-vous continuer cette action par la création automatique d'un fichier __init__.py dans le repertoire \n" + fldPath + " ?", "Fichiers python introuvables") == 0: return
+
+		# end if
+
+		path = os.path.join(fldPath, "__init__.py")
+
+		if os.path.isfile(path) == False: writeFile(path, "# -*- coding: utf-8 -*-")
+
+		lstFile.append(path)
+
+		lstName.append("__init__.py")
+
+	# end if
+
+	# initialisation de paramètres
+
+	projectName = ""
+
+	projectStartingFile = ""
+
+	projectType = ""
+
+	# recherche du fichier des paramètres du projet python
+
+	projectFile = os.path.join(fldPath, "project.pyproj")
+
+	if os.path.isfile(projectFile) == False:
+
+		# il n'existe pas, on va le créer
+
+		# mais d'abord renseignement de quelques paramètres
+
+		s = ""
+
+		# demande de désignation du fichier de démarrage du projet
+
+		i = sp.window.choice("Choisissez le fichier de démarrage du projet", "Fichier de démarrage", lstName)
+
+		if i >= 0: projectStartingFile = lstName[i]
+
+		s += "projectStartingFile=" + projectStartingFile + "\r\n"
+
+		# demande de détermination du nom du projet
+
+		projectName = projectStartingFile.split(".")[0]
+
+		projectName = sp.window.prompt("Tapez le nom du projet", "Nom du projet", fldName, [fldName, projectName])
+
+		if projectName == "" or projectName == None: projectName = fldName
+
+		s += "projectName=" + projectName + "\r\n"
+
+		# demande de détermination du type du projet (exe, dll, script, etc)
+
+		projectType = "exe"
+
+		s += "projectType=" + projectType + "\r\n"
+
+		# création
+
+		writeFile(projectFile, s)
+
+	# end if
+
+	# lecture du fichier de projet
+
+	s = "\r\n" + readFile(projectFile, )
+
+	projectName = finditer2list("projectName=([^\\r\\n]*)", s, re.I)[0].group(1)
+
+	projectStartingFile = finditer2list("projectStartingFile=([^\\r\\n]*)", s, re.I)[0].group(1)
+
+	projectType = finditer2list("projectType=([^\\r\\n]*)", s, re.I)[0].group(1)
+
+	# ouverture des fichiers python dans les onglets
+
+	for f in lstFile:
+
+		sp.window.open(f)
+
+	# end for
+
+	# sélection de l'onglet du fichier de démarrage
+
+	for p in sp.window.pages:
+
+		if p.name == projectStartingFile:
+
+			p.focus()
+
+			break
+
+		# end if
+
+	# end for
+
+	# assignation de variables globales
+
+	curProjectPath = projectPath
+
+	curProjectFile = projectFile
+
+	# ajout de ce projet à la liste des projets récents
+
+	addToRecentProjects(projectPath)
+
+	# actualisation de la liste des projets récents
+
+	displayRecentProjectsInMenu()
+
+	# affichage des outils contextuels de projet
+
+	displayContextualProjectTools(projectPath)
+
+# end def
+
+
+
+def openNewProject():
+
+	""" Crée un nouveau projet """
+
+	openProject(True)
+
+# end def
+
+
+
+def openRecentProject(menuIndex):
+
+	""" ouvre un projet récent """
+
+	i = 0
+
+# end def
+
+
+
+def saveProjectAs():
+
+	""" enregistre le projet sous """
+
+	alert("enregistrement du projet sous encore en construction")
+
+# end def
+
+
+
+def executeProject():
+
+	""" exécute le projet """
+
+	alert("exécution du projet encore en construction")
+
+# end def
+
+
+
+def openFileOrFolder(item):
+
+	# ouverture du fichier dans un onglet, si pas déja ouvert
+
+	i = isAllReadyOpened(item.value)
+
+	if i >= 0:
+
+		# le fichier est ouvert dans l'onglet i
+
+		sp.window.pages[i].focus
+
+	else: # le fichier n'est pas encore ouvert
+
+		sp.window.open(item.value)
+
+	# end if
+
+# end def
+
+
+
+def rename(item):
+
+	alert("renommage encore en construction")
+
+# end def
+
+
+
+def delete(item):
+
+	alert("suppression encore en construction")
+
+# end def
+
+
+
+def copyPath(item):
+
+	alert("copie du chemin encore en construction")
+
+# end def
+
+
+
+def copyRef(item):
+
+	alert("copie de la référence encore en construction")
+
+# end def
+
+
+
+def properties(item):
+
+	alert("propriétés encore en construction")
+
+# end def
+
+
+
+def delayMsg2():
+
+	# retardement de la lecture d'un message
+
+	global tmr, msg
+
+	sp.say(msg)
+
+	# relance du timer 
+
+	# tmr.run() # pas nécessaire
+
+# end def
+
+
+
+def delayMsg1(s, delay):
+
+	global msg
+
+	msg = s
+
+	tmr = Timer(delay, delayMsg2)
+
+	tmr.start() # lancement
+
+# end def
+
+
+
+def readFile(filePath, _mode = 'r'):
+
+	# lit et renvoi le contenu d'un fichier texte
+
+	fil = open(filePath, _mode)
+
+	s = fil.read()
+
+	fil.close() # Fermeture du fichier
+
+	return s
+
+# end def
+
+
+
+def writeFile(filePath, s, _mode = 'w'):
+
+	# Ecrit dans un fichier
+
+	fil = open(filePath, _mode)
+
+	fil.write(s)
+
+	fil.close() # Fermeture du fichier
+
+# end def
+
+
+
+def getCurModuleDir():
+
+	# renvoi le chemin vers le dossier contenant le script courant
+
+	path = inspect.getfile(inspect.currentframe())
+
+	return os.path.dirname(path)
+
+# end def-
+
+
+
+def getModuleRef(path):
+
+	# renvoi le module de 6pad à partir de son chemin
+
+	s = sp.appdir
+
+	l = path.split("\\")
+
+	if path.find(os.path.join(s, "lib")) >= 0:
+
+		s2 = os.path.join(s, "lib")
+
+		l2 = s2.split("\\")
+
+		l = l[len(l2):]
+
+	elif path.find(os.path.join(s, "plugins")) >= 0:
+
+		s2 = os.path.join(s, "plugins")
+
+		l2 = s2.split("\\")
+
+		l = l[len(l2):]
+
+	else:
+
+		return ""
+
+	# end if
+
+	path = ".".join(l)
+
+	l = path.split(".")
+
+	del l[- 1]
+
+	path = ".".join(l)
+
+	return path
+
+# end def
+
+
+
+def getCurrentLevel(item):
+
+	# renvoi le niveau de l'item dans la hiérarchie de larborescence
+
+	level = 1
+
+	parent = item.parentNode
+
+	while(parent != None):
+
+		parent = parent.parentNode
+
+		level = level + 1
+
+	# end while
+
+	return level
+
+# end def
+
+
+
+def onCheck(dialog, item):
+
+	# au cochage ou décochage
+
+	# il faut que ce soit un fichier python
+
+	if os.path.isfile(item.value):
+
+		ref = getModuleRef(item.path) # sa référence
+
+		if ref != "":
+
+			if item.checked == False: # on doit l'activer
+
+				sp.setConfig("extension", ref, True)
+
+			else: # on doit le désactiver
+
+				s = readFile(sp.configfile)
+
+				ref = re.sub("\\.", "\\.", s)
+
+				s = re.sub("^[ \\t]*extension[ \\t]*\\=[ \\t]*" + ref + "[ \\t]*$", "", s, 0, re.I + re.M)
+
+				writeFile(sp.configfile, s)
+
+			# end if
+
+		# end if
+
+	# end if
+
+# end def
+
+
+
+def onSelect(dialog, item):
+
+	# à la sélection d'un noeud
+
+	global lastLevel
+
+	# lecture de son niveau si changement de noeud
+
+	level = getCurrentLevel(item)
+
+	if level != lastLevel:
+
+		sp.say("Niveau " + str(level))
+
+		lastLevel = level
+
+	# end if
+
+	# sp.say(s)
+
+# end def
+
+
+
+def onExpand(dialog, item):
+
+	# à l'expension d'un noeud
+
+	sp.say(item.text, False)
+
+	try: sp.say(str(len(item.childNodes)) + " items")
+
+	except: pass
+
+	return True
+
+# end def
+
+
+
+def onContextMenu(dialog, item):
+
+	# au menu contextuel sur un noeud
+
+	# constitution de la liste de base des éléments du menu contextuel
+
+	lst = ["Renommer", "Supprimer", "Copier le chemin", "Copier la référence python", "Propriétés..."]
+
+	# selon si dossier ou fichier python
+
+	if os.path.isdir(item.value):
+
+		lst.insert(0, "Ouvrir dans l'explorateur Windows")
+
+		# affichage du menu contextuel
+
+		i = sp.window.showPopupMenu(lst)
+
+		if i == -1:
+
+			return
+
+		# end if
+
+	elif os.path.isfile(item.value):
+
+		lst.insert(0, "Afficher le code")
+
+		# affichage du menu contextuel
+
+		i = sp.window.showPopupMenu(lst)
+
+		if i == -1:
+
+			return
+
+		elif i == 0:
+
+			openFileOrFolder(item)
+
+		elif i == 1:
+
+			rename(item)
+
+		elif i == 2:
+
+			delete(item)
+
+		elif i == 3:
+
+			copyPath(item)
+
+		elif i == 4:
+
+			copyRef(item)
+
+		elif i == 5:
+
+			properties(item)
+
+		# end if
+
+	else:
+
+		return
+
+	# end if
+
+# end def
+
+
+
+def loadTV(tv, rootPath):
+
+	# chargement de l'arborescence
+
+	# à partir du dossier racine du projet
+
+	if os.path.isdir(rootPath):
+
+		item = tv.root.appendChild(os.path.basename(rootPath), rootPath)
+
+		browseFolders(item)
+
+	# end if
+
+	# ajout d'évènements
+
+	tv.addEvent("expand", onExpand)
+
+	tv.addEvent("contextMenu", onContextMenu)
+
+	tv.addEvent("check", onCheck)
+
+	tv.addEvent("select", onSelect)
+
+# end def
+
+
+
+def browseFolders(item):
+
+	# parcours des sous-éléments d'un dossier
+
+	# dans l'optique de les ajouter à l'arborescence
+
+	f = ""
+
+	pt = "(.+)\\.(py|pyw|pyx)$"
+
+	found = os.listdir(item.value)
+
+	if found == None or len(found) == 0: return
+
+	# premièrement, recherche des sous-dossiers
+
+	for f in found:
+
+		try:
+
+			if os.path.isdir(os.path.join(item.value, f)):
+
+				subItem = item.appendChild(f, os.path.join(item.value, f))
+
+				browseFolders(subItem)
+
+			# end if
+
+		except: pass
+
+	# end for
+
+	# puis, recherche des fichiers python du dossier courant
+
+	for f in found:
+
+		if re.match(pt, f, re.I):
+
+			subItem = item.appendChild(f, os.path.join(item.value, f))
+
+		# end if
+
+	# end for
+
+# end def
+
+
+
+def showProjectExplorer():
+
+	""" affiche l'explorateur des fichiers du projet """
+
+	global curProjectPath
+
+	# le chemin du projet
+
+	rootPath = curProjectPath
+
+	if rootPath == "": rootPath = os.path.dirname(sp.window.curPage.file)
+
+	# affichage
+
+	tv = qc.TreeViewDialog.open(title = "Explorateur de projet", hint = "Gérer les fichier python du projet", modal = False, multiple = False, cancelButtonText = "Fermer")
+
+	# qc.TreeViewItem.value
+
+	# chargement
+
+	loadTV(tv, rootPath)
+
+# end def
+
+
+
+def showClassesExplorer():
+
+	""" ouvre l'explorateur de classes du projet """
+
+	i = 0
+
+# end def
+
+
+
+def addToRecentProjects(projectPath):
+
+	""" enregistre le projet récent """
+
+	# recherche des fichiers récents dans le fichier de configuration
+
+	s = sp.getConfig("recentPythonProjects", "")
+
+	lst = s.split("|") # transfert dans une liste
+
+	# on retire une éventuelle présence de ce chemin déjà présent dans la liste des chemins
+
+	try: lst.remove(projectPath)
+
+	except: pass
+
+	# on ajoute le nouvel élément au début
+
+	lst.insert(0, projectPath)
+
+	# si la liste a plus de 15 éléments, on la réduit
+
+	if len(lst) > 15:
+
+		lst = lst[0:14]
+
+	# end if
+
+	# reconstitution et écriture dans le fichier de configuration
+
+	s = "|".join(lst)
+
+	sp.setConfig("recentPythonProjects", s)
+
+# end def
+
+
+
+def displayRecentProjectsInMenu():
+
+	""" peuple le menu projet récents """
+
+	global menuRecentProjects
+
+	mnu = menuRecentProjects # simplification
+
+	# vidage du menu
+
+	i = mnu.length - 1
+
+	while (i >= 0):
+
+		mnu[i].remove()
+
+		i -= 1
+
+	# end while
+
+	# recherche des fichiers récents dans le fichier de configuration
+
+	s = sp.getConfig("recentPythonProjects", "")
+
+	lst = s.split("|") # transfert dans liste
+
+	# création des menus à la volée
+
+	j = -1
+
+	for i in range(len(lst)):
+
+		if os.path.isdir(lst[i]) == True:
+
+			j += 1
+
+			mnu.add(label = os.path.basename(lst[i]) + " de " + os.path.dirname(lst[i]), action = lambda: openRecentProject(j))
+
+		# end if
+
+		# contrôle de la limite (10 éléments maximum)
+
+		if j >= 9: break
+
+	# end for
+
+# end def
+
+
+
+def displayContextualProjectTools(projectPath):
+
+	# charge et affiche les outils contextuels d'un projet à ouvrir
+
+	global curProjectPath, curProjectFile
+
+	# enregistrement du chemin du projet
+
+	curProjectPath = projectPath
+
+	# vérification que ces outils n'ont pas déjà été affichés
+
+	if sp.window.menus["project"] != None: return
+
+	# création du menu projet
+
+	i = getMenuIndex("forPython", sp.window.menus)
+
+	if i < 0: i = 4
+
+	mnu = sp.window.menus.add(label = "Projet", name = "project", submenu = True, index = i + 1)
+
+	# menu d'ajout de module
+
+	mnu.add(label = "Ajouter un module python", name = "projectAddModule")
+
+	# menu d'ajout d'interface graphique
+
+	mnu.add(label = "Ajouter une interface graphique", name = "projectAddGraphicInterface")
+
+	# menu d'ajout de fichier de base de données
+
+	mnu.add(label = "Ajouter un fichier de base de données", name = "projectAddDatabaseFile")
+
+	# menu de suppression du projet
+
+	mnu.add(label = "Supprimer le module courant du projet", name = "projectDeleteModule")
+
+	# menu des paramètres de sauvegarde du projet
+
+	mnu.add(label = "Paramètres de sauvegarde du projet python", name = "projectSaveParams")
+
+	# menu d'exploration des fichiers du projet
+
+	mnu.add(label = "Explorateur de projet python", action = showProjectExplorer, name = "projectExplorer")
+
+	# menu d'exploration des classes du projet
+
+	mnu.add(label = "Explorateur de classes python", action = showClassesExplorer, name = "projectExplorer")
+
+	# menu des propriétés du projet
+
+	mnu.add(label = "Propriétés du projet python", name = "projectProperties")
+
+	# dans le menu fichier
+
+	mnu = sp.window.menus.file
+
+	# menu enregistrer le projet sous
+
+	i = getMenuIndex("saveAs", mnu)
+
+	mnu.add(label = "Enregistrer le projet python sous...", name = "saveProjectAs", action = saveProjectAs, index = i + 1)
+
+	# dans le menu python
+
+	if sp.window.menus["forPython"]["execution"] != None:
+
+		mnu = sp.window.menus["forPython"]["execution"]
+
+		# ajout du menu exécuter le projet
+
+		mnu.add(label = "Exécuter le projet", name = "executeProject", action = executeProject)
+
+	# end if
+
+	
+
+# end def
+
+
+
+def hideContextualProjectTools():
+
+	# masque les outils contextuel liés à un projet ouvert
+
+	mnu = sp.window.menus
+
+	if mnu["project"] != None: mnu["project"].remove()
+
+	# dans le menu fichier
+
+	if sp.window.menus["saveProjectAs"] != None:
+
+		sp.window.menus["saveProjectAs"].remove()
+
+	# end if
+
+	# dans le menu python
+
+	try: sp.window.menus["forPython"]["execution"]["executeProject"].remove()
+
+	except: pass
+
+# end def
+
+
+
+def loadManageProjectTools():
+
+	# charge les outils liés au manageProject
+
+	global menuRecentProjects
+
+	# création des menu visible en tout temps
+
+	# dans le menu fichier
+
+	mnu = sp.window.menus["file"]
+
+	# menu projet python dans nouveau
+
+	mnu[0].add(label = "Projet python", name = "newPythonProject", action = openNewProject)
+
+	# on modifie le label pour être synchrone
+
+	mnu[0][0].label = "Fichier"
+
+	# menu ouvrir un projet
+
+	i = getMenuIndex("open", mnu)
+
+	mnu.add(label = "Ouvrir un projet python", name = "openProject", index = i + 1, action = openProject)
+
+	# les menus des projets récents
+
+	i = getMenuIndex("close", mnu)
+
+	menuRecentProjects = mnu.add(label = "Projets récents", name = "recentProjects", index = i, submenu = True)
+
+	
+
+# end def
+
+
+
+def unloadManageProjectTools():
+
+	# retrait des outils liés au manageProject
+
+	mnu = sp.window.menus
+
+	# les outils contextuels
+
+	hideContextualProjectTools()
+
+	# dans le menu fichier
+
+	if mnu.file[0]["newPythonProject"] != None: mnu.file[0]["newPythonProject"].remove()
+
+	if mnu.file["openProject"] != None: mnu.file["openProject"].remove()
+
+# end def
+
+
+
+fklru'fuYYDà'_Bçtuejk2016/08/18 17-29-49 sauvegarde                     # -*- coding: utf-8 -*-
+import sixpad as sp
+import os
+import sys
+import re
+import inspect
+from threading import Timer
+
+alert = sp.window.alert
+
+lastLevel = 0
+
+curPage = object()
+curProjectPath = ""
+curProjectFile = ""
+lstProjectPath = []
+# référence d'évènements à la fenêtre
+po = 0
+otc = 0
+
+def getMenuIndex(mnuName, mnuParent):
+	# renvoi la position/index d'un menu par son name, relativement à son parent
+	s = ""
+	for i in range(mnuParent.length):
+		if mnuParent[i].name == mnuName: return i
+		s = s + mnuParent[i].name + ", "
+	# end for
+	alert(s)
+	return - 1
+# end def
+
+def isAllReadyOpened(filePath):
+	""" vérifie si un fichier est déja ouvert dans un onglet
+		si oui, renvoi l'index de l'onglet.
+		sinon, renvoi -1"""
+	for i in range(len(sp.window.pages)):
+		p = sp.window.pages[i]
+		if os.path.samefile(filePath, p.file) == True:
+			return i
+		# end if
+	# end for
+	return - 1
+# end def
+
+def finditer2list(pt, s, flags = 0):
+	# recherche par regexp renvoyant un objet liste d'objets match
+	lst = []
+	found = re.finditer(pt, s, flags)
+	for e in found: lst.append(e)
+	return lst
+# end def
+
+def findall2list(pt, s, flags = 0):
+	# recherche par regexp renvoyant un objet liste de string trouvés
+	lst = []
+	found = re.findall(pt, s, flags)
+	for e in found: lst.append(e)
+	return lst
+# end def
+
+def closeCurrentProject():
+	""" ferme le projet actuellement ouvert """
+	global curProjectPath, curProjectFile
+	for p in sp.window.pages:
+		if p.file != "":
+			p.save()
+		# end if
+		p.close()
+	# end for
+	# réinitialisation des paramètres du projet
+	curProjectPath = ""
+	curProjectFile = ""
+# end def
+
+def openProject(novelty = False, fldPath = ""):
+	# ouvre un projet (nouveau ou existant)
+	fldName = ""
+	if novelty == False:
+		if fldPath == "": fldPath = sp.window.chooseFolder("Désignez le répertoire du projet python à ouvrir")
+	else:
+		fldPath = sp.window.chooseFolder("Désignez l'emplacement dans lequel créer le nouveau projet python.")
+	# end if
+	if fldPath == None or os.path.isdir(fldPath) == False: return
+	if novelty == False:
+		# on retient le nom de ce dossier
+		fldName = os.path.basename(fldPath)
+	else: # c'est un nouveau projet
+		# on demande le nom à donner au dossier
+		# dont on va vérifier la validité
+		pt = "^[\\w\\d_]+$"
+		fldName = sp.window.prompt("Tapez le nom du repertoire devant contenir le projet.\nAttention, ce nom doit respecter les standards de nom de variable en langage python.", "Nom du repertoire du projet", fldName)
+		if fldName == None or fldName == "": return
+		if re.match(pt, fldName):
+			fldName = fldName
+		else:
+			alert("Le nom tapé pour le répertoire python n'est pas valide.\nLe processus va à présent s'interrompre.", "Erreur- nom erroné")
+			return
+		# end if
+		# complétion du chemin du repertoire du projet
+		fldPath = os.path.join(fldPath, fldName)
+		# on crée ce dossier
+		os.mkdir(fldPath)
+		# vérification
+		if os.path.isdir(fldPath) == False:
+			alert("Impossible de créer le répertoire " + fldName + ".\nL'action va à présent s'interrompre.", "Erreur- création de dossier")
+			return
+		# end if
+	# end if
+	projectPath = fldPath
+	# on ferme le projet courant
+	closeCurrentProject()
+	# recensement des fichiers python dans le repertoire à ouvrir
+	lstFile = []
+	lstName = []
+	for f in os.listdir(fldPath):
+		ext = f.split(".")[-1].lower()
+		# si fichier python
+		if ext == "py" or ext == "pyw":
+			# on retient le fichier python
+			lstFile.append(os.path.join(fldPath, f))
+			lstName.append(f)
+		# end if
+	# end for
+	# si pas de fichier python dans ce dossier
+	if len(lstFile) == 0:
+		# on en crée un automatiquement
+		# après demande à l'utilisateur
+		if novelty == False:
+			if sp.window.confirm("Il n'existe pas de fichier python à l'emplacement que vous avez désigné.\nVoulez-vous continuer cette action par la création automatique d'un fichier __init__.py dans le repertoire \n" + fldPath + " ?", "Fichiers python introuvables") == 0: return
+		# end if
+		path = os.path.join(fldPath, "__init__.py")
+		if os.path.isfile(path) == False: writeFile(path, "# -*- coding: utf-8 -*-")
+		lstFile.append(path)
+		lstName.append("__init__.py")
+	# end if
+	# initialisation de paramètres
+	projectName = ""
+	projectStartingFile = ""
+	projectType = ""
+	# recherche du fichier des paramètres du projet python
+	projectFile = os.path.join(fldPath, "project.pyproj")
+	if os.path.isfile(projectFile) == False:
+		# il n'existe pas, on va le créer
+		# mais d'abord renseignement de quelques paramètres
+		s = ""
+		# demande de désignation du fichier de démarrage du projet
+		i = sp.window.choice("Choisissez le fichier de démarrage du projet", "Fichier de démarrage", lstName)
+		if i >= 0: projectStartingFile = lstName[i]
+		s += "projectStartingFile=" + projectStartingFile + "\r\n"
+		# demande de détermination du nom du projet
+		projectName = projectStartingFile.split(".")[0]
+		projectName = sp.window.prompt("Tapez le nom du projet", "Nom du projet", fldName, [fldName, projectName])
+		if projectName == "" or projectName == None: projectName = fldName
+		s += "projectName=" + projectName + "\r\n"
+		# demande de détermination du type du projet (exe, dll, script, etc)
+		projectType = "exe"
+		s += "projectType=" + projectType + "\r\n"
+		# création
+		writeFile(projectFile, s)
+	# end if
+	# lecture du fichier de projet
+	s = "\r\n" + readFile(projectFile, )
+	projectName = finditer2list("projectName=([^\\r\\n]*)", s, re.I)[0].group(1)
+	projectStartingFile = finditer2list("projectStartingFile=([^\\r\\n]*)", s, re.I)[0].group(1)
+	projectType = finditer2list("projectType=([^\\r\\n]*)", s, re.I)[0].group(1)
+	# ouverture des fichiers python dans les onglets
+	for f in lstFile:
+		p = sp.window.open(f)
+	# end for
+	# sélection de l'onglet du fichier de démarrage
+	for p in sp.window.pages:
+		if p.name == projectStartingFile:
+			p.focus()
+			break
+		# end if
+	# end for
+	# assignation de variables globales
+	curProjectPath = projectPath
+	curProjectFile = projectFile
+	# ajout de ce projet à la liste des projets récents
+	addToRecentProjects(projectPath)
+	# actualisation de la liste des projets récents
+	displayRecentProjectsInMenu()
+	# affichage des outils contextuels de projet
+	displayContextualProjectTools(projectPath)
+# end def
+
+def openNewProject():
+	""" Crée un nouveau projet """
+	openProject(True)
+# end def
+
+def openRecentProject(menuIndex):
+	""" ouvre un projet récent """
+	def openAProject():
+		global lstProjectPath
+		openProject(False, lstProjectPath[menuIndex])
+	# end def
+	return openAProject
+	
+# end def
+
+def saveProjectAs():
+	""" enregistre le projet sous """
+	global curProjectPath
+	# si projet non actuellement désigné
+	if curProjectPath == "": return
+	# demande de désignation de l'emplacement où faire une copie du projet courant
+	fldPath = sp.window.chooseFolder("Désignez l'emplacement dans lequel enregistrer le projet '" + os.path.basename(curProjectPath) + "'.")
+	if fldPath == None or fldPath == "": return
+	# COPIE DE REPERTOIRE
+	alert("suite des traitements encore en construction")
+# end def
+
+def executeProject():
+	""" exécute le projet """
+	global curProjectPath
+	alert("exécution du projet encore en construction")
+# end def
+
+def openFileOrFolder(item):
+	# ouverture du fichier dans un onglet, si pas déja ouvert
+	global tv
+	# index si dans une page ouverte
+	i = isAllReadyOpened(item.value)
+	# comparaison
+	if i >= 0:
+		# le fichier est ouvert dans l'onglet i
+		sp.window.pages[i].focus
+	else: # le fichier n'est pas encore ouvert
+		sp.window.open(item.value)
+	# end if
+	# on referme l'arborescence
+	# tv.close()
+# end def
+
+def rename(item):
+	name = os.path.basename(item.value)
+	# demande de modification
+	name = sp.window.prompt("Renommer:", "Renommer", name)
+	alert("suite du renommage encore en construction")
+# end def
+
+def delete(item):
+	# demande de confirmation
+	if sp.window.confirm("Êtes-vous sur de vouloir supprimer l'élément'" + os.path.basename(item.value) + "' du projet ?", "Suppression") == 0: return
+	alert("suite de la suppression encore en construction")
+# end def
+
+def copyPath(item):
+	""" Copie du chemin de l'élément sélectionné dans l'arborescence """
+	sp.setClipboardText(item.value)
+# end def
+
+def copyRef(item):
+	""" Copie de la référence python de l'élément sélectionné dans l'arborescence """
+	is6padInterpretor = (sp.getConfig("curPythonVersion", "") == "6padPythonVersion")
+	ref = getModuleRef(item.value, is6padInterpretor)
+	# retrait d'extension
+	ref = re.sub("\\.py$", "", ref, 0, re.I)
+	ref = re.sub("\\.pyw$", "", ref, 0, re.I)
+	# copie dans le presse-papier
+	sp.setClipboardText(ref)
+# end def
+
+def properties(item):
+	alert("propriétés encore en construction")
+# end def
+
+def delayMsg2():
+	# retardement de la lecture d'un message
+	global tmr, msg
+	sp.say(msg)
+	# relance du timer 
+	# tmr.run() # pas nécessaire
+# end def
+
+def delayMsg1(s, delay):
+	global msg
+	msg = s
+	tmr = Timer(delay, delayMsg2)
+	tmr.start() # lancement
+# end def
+
+def readFile(filePath, _mode = 'r'):
+	# lit et renvoi le contenu d'un fichier texte
+	fil = open(filePath, _mode)
+	s = fil.read()
+	fil.close() # Fermeture du fichier
+	return s
+# end def
+
+def writeFile(filePath, s, _mode = 'w'):
+	# Ecrit dans un fichier
+	fil = open(filePath, _mode)
+	fil.write(s)
+	fil.close() # Fermeture du fichier
+# end def
+
+def getCurModuleDir():
+	# renvoi le chemin vers le dossier contenant le script courant
+	path = inspect.getfile(inspect.currentframe())
+	return os.path.dirname(path)
+# end def-
+
+def getModuleRef(modPath, is6padInterpretor = True):
+	# renvoi la référence à un module  à partir de son chemin
+	global curProjectPath
+	# décomposition du chemin vers le module dans une liste
+	lst = modPath.split("\\")
+	rep = ""
+	# si l'interpréteur sélectionné est celui du 6pad++
+	if is6padInterpretor == True:
+		appPath = sp.appdir
+		# quel répertoire ? (lib ou plugins ?) lib ou plugins ?
+		if modPath.find(os.path.join(appPath, "lib")) >= 0: rep = "lib"
+		elif modPath.find(os.path.join(appPath, "plugins")) >= 0: rep = "plugins"
+		else: return ""
+		rep = os.path.join(appPath, rep)
+	else: # l'interpréteur sélectionné n'est pas celui du 6pad++
+		rep = curProjectPath
+	# end if
+	# on trouve la longueur limite du répertoire de base du projet
+	limit = len(rep.split("\\"))
+	# on prend la partie au dela
+	lst = lst[limit:]
+	# on renvoi cette partie en la joignant par des points
+	return ".".join(lst)
+# end def
+
+def getCurrentLevel(item):
+	# renvoi le niveau de l'item dans la hiérarchie de larborescence
+	level = 1
+	parent = item.parentNode
+	while(parent != None):
+		parent = parent.parentNode
+		level = level + 1
+	# end while
+	return level
+# end def
+
+def onPageOpened(newPage):
+	""" A l'ouverture d'une nouvelle page"""
+	i = 0
+# end def
+
+def onTitleChange(text):
+	""" lors du changement de titre """
+	global curPage
+	# on va ajouter au titre le nom du projet
+	text = sp.window.curPage.name + " - " + os.path.basename(curProjectPath) + ""
+	if curPage != sp.window.curPage:
+		sp.say(text, True)
+		curPage = sp.window.curPage
+	# end if
+	# renvoi
+	sp.window.title = text
+	return text
+# end def
+
+def onPageActivated(page):
+	""" A la prise de focus d'une page """
+	# on va mettre le nom du projet dans le titre de la fenêtre
+	sp.window.messageBeep(0)
+	name = sp.window.title
+	name = name + " [" + os.path.basename(curProjectPath) + "]"
+	sp.window.title = name
+# end def
+
+def onCheck(dialog, item):
+	# au cochage ou décochage
+	i = 0
+# end def
+
+def onSelect(dialog, item):
+	# à la sélection d'un noeud
+	global lastLevel
+	# lecture de son niveau si changement de noeud
+	level = getCurrentLevel(item)
+	if level != lastLevel:
+		#  désactivé sp.say("Niveau " + str(level))
+		lastLevel = level
+	# end if
+	# désactivé sp.say(s)
+# end def
+
+def onExpand(dialog, item):
+	# à l'expension d'un noeud
+	sp.say(item.text, False)
+	try: sp.say(str(len(item.childNodes)) + " items")
+	except: pass
+	return True
+# end def
+
+def onContextMenu(dialog, item):
+	# au menu contextuel sur un noeud
+	# constitution de la liste de base des éléments du menu contextuel
+	lst = ["Renommer", "Supprimer", "Copier le chemin", "Copier la référence python", "Propriétés..."]
+	# selon si dossier ou fichier python
+	if os.path.isdir(item.value):
+		lst.insert(0, "Ouvrir dans l'explorateur Windows")
+		# affichage du menu contextuel
+		i = sp.window.showPopupMenu(lst)
+		if i == -1:
+			return
+		# end if
+	elif os.path.isfile(item.value):
+		lst.insert(0, "Afficher le code")
+		# affichage du menu contextuel
+		i = sp.window.showPopupMenu(lst)
+		if i == -1:
+			return
+		elif i == 0:
+			openFileOrFolder(item)
+		elif i == 1:
+			rename(item)
+		elif i == 2:
+			delete(item)
+		elif i == 3:
+			copyPath(item)
+		elif i == 4:
+			copyRef(item)
+		elif i == 5:
+			properties(item)
+		# end if
+	else:
+		return
+	# end if
+# end def
+
+def loadTV(tv, rootPath):
+	# chargement de l'arborescence
+	# à partir du dossier racine du projet
+	if os.path.isdir(rootPath):
+		item = tv.root.appendChild(os.path.basename(rootPath), rootPath)
+		browseFolders(item)
+	# end if
+	# ajout d'évènements
+	tv.addEvent("expand", onExpand)
+	tv.addEvent("contextMenu", onContextMenu)
+	tv.addEvent("check", onCheck)
+	tv.addEvent("select", onSelect)
+# end def
+
+def browseFolders(item):
+	# parcours des sous-éléments d'un dossier
+	# dans l'optique de les ajouter à l'arborescence
+	f = ""
+	pt = "(.+)\\.(py|pyw|pyx)$"
+	found = os.listdir(item.value)
+	if found == None or len(found) == 0: return
+	# premièrement, recherche des sous-dossiers
+	for f in found:
+		try:
+			if os.path.isdir(os.path.join(item.value, f)):
+				subItem = item.appendChild(f, os.path.join(item.value, f))
+				browseFolders(subItem)
+			# end if
+		except: pass
+	# end for
+	# puis, recherche des fichiers python du dossier courant
+	for f in found:
+		if re.match(pt, f, re.I):
+			subItem = item.appendChild(f, os.path.join(item.value, f))
+			# si l'item représente le document courant, on le sélectionne
+			try:
+				if os.path.samefile(sp.window.curPage.file, subItem.value):
+					subItem.select()
+				# end if
+			except: pass
+		# end if
+	# end for
+# end def
+
+def showProjectExplorer():
+	""" affiche l'explorateur des fichiers du projet """
+	global curProjectPath, tv
+	# le chemin du projet
+	rootPath = curProjectPath
+	if rootPath == "": rootPath = os.path.dirname(sp.window.curPage.file)
+	# affichage
+	tv = qc.TreeViewDialog.open(title = "Explorateur de projet", hint = "Gérer les fichier python du projet", modal = False, multiple = False, okButtonText = "", cancelButtonText = "Fermer")
+	# chargement
+	loadTV(tv, rootPath)
+# end def
+
+def showClassesExplorer():
+	""" ouvre l'explorateur de classes du projet """
+	i = 0
+# end def
+
+def addToRecentProjects(projectPath):
+	""" enregistre le projet récent """
+	# recherche des fichiers récents dans le fichier de configuration
+	s = sp.getConfig("recentPythonProjects", "")
+	lst = s.split("|") # transfert dans une liste
+	# on retire une éventuelle présence de ce chemin déjà présent dans la liste des chemins
+	try: lst.remove(projectPath)
+	except: pass
+	# on ajoute le nouvel élément au début
+	lst.insert(0, projectPath)
+	# si la liste a plus de 15 éléments, on la réduit
+	if len(lst) > 15:
+		lst = lst[0:14]
+	# end if
+	# reconstitution et écriture dans le fichier de configuration
+	s = "|".join(lst)
+	sp.setConfig("recentPythonProjects", s)
+# end def
+
+def displayRecentProjectsInMenu():
+	""" peuple le menu projet récents """
+	global menuRecentProjects, lstProjectPath
+	mnu = menuRecentProjects # simplification
+	# vidage de la liste des chemins de projet
+	lstProjectPath = []
+	# vidage du menu
+	i = mnu.length - 1
+	while (i >= 0):
+		mnu[i].remove()
+		i -= 1
+	# end while
+	# recherche des fichiers récents dans le fichier de configuration
+	s = sp.getConfig("recentPythonProjects", "")
+	lst = s.split("|") # transfert dans liste
+	# création des menus à la volée
+	j = -1
+	for i in range(len(lst)):
+		if os.path.isdir(lst[i]) == True:
+			j += 1
+			mnu.add(label = os.path.basename(lst[i]) + " de " + os.path.dirname(lst[i]), action = openRecentProject(j))
+			# ajout à la liste globale
+			lstProjectPath.append(lst[i])
+		# end if
+		# contrôle de la limite (10 éléments maximum)
+		if j >= 9: break
+	# end for
+# end def
+
+def displayContextualProjectTools(projectPath):
+	# charge et affiche les outils contextuels d'un projet à ouvrir
+	global curProjectPath, curProjectFile
+	# enregistrement du chemin du projet
+	curProjectPath = projectPath
+	# vérification que ces outils n'ont pas déjà été affichés
+	if sp.window.menus["project"] != None: return
+	# ajout d'évènement à la fenêtre
+	po = sp.window.addEvent("pageOpened", onPageOpened)
+	otc = sp.window.addEvent("title", onTitleChange)
+	# création du menu projet
+	i = getMenuIndex("forPython", sp.window.menus)
+	if i < 0: i = 4
+	mnu = sp.window.menus.add(label = "Projet", name = "project", submenu = True, index = i + 1)
+	# menu d'ajout de module
+	m = mnu.add(label = "Ajouter un module python", name = "projectAddModule")
+	m.enabled = False
+	# menu d'ajout d'interface graphique
+	m = mnu.add(label = "Ajouter une interface graphique", name = "projectAddGraphicInterface")
+	m.enabled = False
+	# menu d'ajout de fichier de base de données
+	m = mnu.add(label = "Ajouter un fichier de base de données", name = "projectAddDatabaseFile")
+	m.enabled = False
+	# menu de suppression du projet
+	m = mnu.add(label = "Supprimer le module courant du projet", name = "projectDeleteModule")
+	m.enabled = False
+	# menu des paramètres de sauvegarde du projet
+	m = mnu.add(label = "Paramètres de sauvegarde du projet python", name = "projectSaveParams")
+	m.enabled = False
+	# menu d'exploration des fichiers du projet
+	mnu.add(label = "Explorateur de projet python", action = showProjectExplorer, name = "projectExplorer")
+	# menu d'exploration des classes du projet
+	m = mnu.add(label = "Explorateur de classes python", action = showClassesExplorer, name = "projectExplorer")
+	m.enabled = False
+	# menu des propriétés du projet
+	m = mnu.add(label = "Propriétés du projet python", name = "projectProperties")
+	m.enabled = False
+	# dans le menu fichier
+	mnu = sp.window.menus.file
+	# menu enregistrer le projet sous
+	i = getMenuIndex("saveAs", mnu)
+	m = mnu.add(label = "Enregistrer le projet python sous...", name = "saveProjectAs", action = saveProjectAs, index = i + 1)
+	m.enabled = False
+	# dans le menu python
+	if sp.window.menus["forPython"]["execution"] != None:
+		mnu = sp.window.menus["forPython"]["execution"]
+		# ajout du menu exécuter le projet
+		m = mnu.add(label = "Exécuter le projet", name = "executeProject", action = executeProject)
+		m.enabled = False
+	# end if
+# end def
+
+def hideContextualProjectTools():
+	# masque les outils contextuel liés à un projet ouvert
+	mnu = sp.window.menus
+	if mnu["project"] != None: mnu["project"].remove()
+	# dans le menu fichier
+	if sp.window.menus["saveProjectAs"] != None:
+		sp.window.menus["saveProjectAs"].remove()
+	# end if
+	# dans le menu python
+	try: sp.window.menus["forPython"]["execution"]["executeProject"].remove()
+	except: pass
+	# retrait d'évènements à l'objet window
+	try: sp.window.removeEvent("pageOpened", po)
+	except: pass
+	try: sp.window.removeEvent("title", otc)
+	except: pass
+	# retraits d'évènements aux objets pages
+	for page in sp.window.pages:
+		try: page.removeEvent(page.__setattr__("opa"))
+		except: pass
+	# end for
+# end def
+
+def loadManageProjectTools():
+	# charge les outils liés au manageProject
+	global menuRecentProjects
+	# création des menu visible en tout temps
+	# dans le menu fichier
+	mnu = sp.window.menus["file"]
+	# menu projet python dans nouveau
+	mnu[0].add(label = "Projet python", name = "newPythonProject", action = openNewProject)
+	# on modifie le label pour être synchrone
+	mnu[0][0].label = "Fichier"
+	# menu ouvrir un projet
+	i = getMenuIndex("open", mnu)
+	mnu.add(label = "Ouvrir un projet python", name = "openPythonProject", index = i + 1, action = openProject)
+	# les menus des projets récents
+	i = getMenuIndex("close", mnu)
+	menuRecentProjects = mnu.add(label = "Projets récents", name = "recentPythonProjects", index = i, submenu = True)
+	displayRecentProjectsInMenu()
+# end def
+
+def unloadManageProjectTools():
+	# retrait des outils liés au manageProject
+	mnu = sp.window.menus
+	# les outils contextuels
+	hideContextualProjectTools()
+	# dans le menu fichier
+	if mnu.file[0]["newPythonProject"] != None: mnu.file[0]["newPythonProject"].remove()
+	if mnu.file["openPythonProject"] != None: mnu.file["openPythonProject"].remove()
+	if mnu.file["recentPythonProjects"] != None: mnu.file["recentPythonProjects"].remove()
+# end def
+
+# importation du control arborescence
+try:
+	import qc6paddlgs as qc
+except:
+	try:
+		modName = getModuleRef(getCurModuleDir()) + "." + "qc6paddlgs"
+		exec("import " + modName + " as qc")
+	except:
+		sp.window.alert("Le fichier qc6paddlg.pyd est introuvable.\nVeuillez le copier à la racine du dossier plugins pour que ce module puisse fonctionner correctement.", "Erreur dans le module manageShortcuts")
+	# end try
+# end try
+fklru'fuYYDà'_Bçtuejk

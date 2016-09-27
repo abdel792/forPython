@@ -4,11 +4,14 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
-  <meta name="author" content="Auteurs : Abdel" />
+  <meta name="author" content="Auteurs :" />
+  <meta name="author" content="Abdel" />
   <meta name="author" content="Yannick YOUAL&#201; - Cameroun" />
   <meta name="author" content="Cyrille" />
-  <meta name="author" content="Contributeurs : QuentinC" />
+  <meta name="author" content="Contributeurs :" />
+  <meta name="author" content="QuentinC" />
   <meta name="author" content="Jean-Fran&#231;ois COLAS" />
+  <meta name="author" content="Mathieu Barbe" />
   <meta name="author" content="Tous membres de la progliste (une liste de discussion francophone de programmeurs d&#233;ficients visuels)" />
   <title>Extension forPython pour 6pad++</title>
   <style type="text/css">code{white-space: pre;}</style>
@@ -17,39 +20,54 @@
 <body>
 <div id="header">
 <h1 class="title">Extension forPython pour 6pad++</h1>
-<h2 class="author">Auteurs : <script type="text/javascript">
-<!--
-h='&#102;&#114;&#x65;&#x65;&#46;&#102;&#114;';a='&#64;';n='&#x61;&#98;&#100;&#x65;&#108;&#x6b;&#114;&#x69;&#x6d;&#46;&#98;&#x65;&#110;&#x73;&#x61;&#x69;&#100;';e=n+a+h;
-document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+'&#x41;&#98;&#100;&#x65;&#108;'+'<\/'+'a'+'>');
-// -->
-</script><noscript>&#x41;&#98;&#100;&#x65;&#108;&#32;&#40;&#x61;&#98;&#100;&#x65;&#108;&#x6b;&#114;&#x69;&#x6d;&#46;&#98;&#x65;&#110;&#x73;&#x61;&#x69;&#100;&#32;&#x61;&#116;&#32;&#102;&#114;&#x65;&#x65;&#32;&#100;&#x6f;&#116;&#32;&#102;&#114;&#x29;</noscript></h2>
-<h2 class="author"><script type="text/javascript">
-<!--
-h='&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;';a='&#64;';n='&#x6d;&#x61;&#x69;&#108;&#116;&#x6f;&#108;&#x6f;&#x63;&#x6f;&#50;&#48;&#x31;&#x31;';e=n+a+h;
-document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+'&#x59;&#x61;&#110;&#110;&#x69;&#x63;&#x6b;&#32;&#x59;&#x4f;&#x55;&#x41;&#76;&#xc9;'+'<\/'+'a'+'>');
-// -->
-</script><noscript>&#x59;&#x61;&#110;&#110;&#x69;&#x63;&#x6b;&#32;&#x59;&#x4f;&#x55;&#x41;&#76;&#xc9;&#32;&#40;&#x6d;&#x61;&#x69;&#108;&#116;&#x6f;&#108;&#x6f;&#x63;&#x6f;&#50;&#48;&#x31;&#x31;&#32;&#x61;&#116;&#32;&#x67;&#x6d;&#x61;&#x69;&#108;&#32;&#100;&#x6f;&#116;&#32;&#x63;&#x6f;&#x6d;&#x29;</noscript> - Cameroun</h2>
-<h2 class="author"><script type="text/javascript">
-<!--
-h='&#108;&#x61;&#112;&#x6f;&#x73;&#116;&#x65;&#46;&#110;&#x65;&#116;';a='&#64;';n='&#x63;&#x79;&#114;&#x69;&#108;&#108;&#x65;&#46;&#98;&#x6f;&#x75;&#x67;&#x6f;&#116;&#50;';e=n+a+h;
-document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+'&#x43;&#x79;&#114;&#x69;&#108;&#108;&#x65;'+'<\/'+'a'+'>');
-// -->
-</script><noscript>&#x43;&#x79;&#114;&#x69;&#108;&#108;&#x65;&#32;&#40;&#x63;&#x79;&#114;&#x69;&#108;&#108;&#x65;&#46;&#98;&#x6f;&#x75;&#x67;&#x6f;&#116;&#50;&#32;&#x61;&#116;&#32;&#108;&#x61;&#112;&#x6f;&#x73;&#116;&#x65;&#32;&#100;&#x6f;&#116;&#32;&#110;&#x65;&#116;&#x29;</noscript></h2>
-<h2 class="author">Contributeurs : QuentinC</h2>
+<h2 class="author">Auteurs :</h2>
+<h2 class="author"><a href="mailto:abdelkrim.bensaid@free.fr">Abdel</a></h2>
+<h2 class="author"><a href="mailto:mailtoloco2011@gmail.com">Yannick YOUAL&#201;</a> - Cameroun</h2>
+<h2 class="author"><a href="mailto:cyrille.bougot2@laposte.net">Cyrille</a></h2>
+<h2 class="author">Contributeurs :</h2>
+<h2 class="author">QuentinC</h2>
 <h2 class="author">Jean-Fran&#231;ois COLAS</h2>
+<h2 class="author">Mathieu Barbe</h2>
 <h2 class="author">Tous membres de la progliste (une liste de discussion francophone de programmeurs d&#233;ficients visuels)</h2>
-<h3 class="date">Date de r&#233;daction : 05/05/2016</h3>
+<h3 class="date">Date de r&#233;daction : 18/09/2016</h3>
 </div>
 <div id="TOC">
 <ul>
 <li><a href="#pr&#233;sentation"><span class="toc-section-number">1</span> Pr&#233;sentation</a></li>
-<li><a href="#installation"><span class="toc-section-number">2</span> Installation</a></li>
+<li><a href="#installation-de-lextension-forpython"><span class="toc-section-number">2</span> Installation de l'extension forPython</a></li>
+<li><a href="#les-fonctionnalit&#233;s-ajout&#233;es-&#224;-linterface-du-6pad-par-le-forpython"><span class="toc-section-number">3</span> Les fonctionnalit&#233;s ajout&#233;es &#224; l'interface du 6pad++ par le forPython</a><ul>
+<li><a href="#les-fonctionnalit&#233;s-autonomes-&#224;-un-fichier"><span class="toc-section-number">3.1</span> 1. Les fonctionnalit&#233;s autonomes &#224; un fichier</a><ul>
+<li><a href="#la-prise-en-charge-des-types-de-fichier-python-d&#232;s-leur-ouverture"><span class="toc-section-number">3.1.1</span> La prise en charge des types de fichier python d&#232;s leur ouverture</a></li>
+<li><a href="#la-prise-en-charge-du-codage-dans-les-diverses-version-du-langage-python-install&#233;s-sur-lordinateur-courant"><span class="toc-section-number">3.1.2</span> La prise en charge du codage dans les diverses version du langage python install&#233;s sur l'ordinateur courant</a></li>
+<li><a href="#le-d&#233;placement-dans-les-fichiers-python"><span class="toc-section-number">3.1.3</span> Le d&#233;placement dans les fichiers python</a></li>
+<li><a href="#la-s&#233;lection-de-code-python"><span class="toc-section-number">3.1.4</span> La s&#233;lection de code python</a></li>
+<li><a href="#le-balisage-de-code-python"><span class="toc-section-number">3.1.5</span> Le balisage de code python</a></li>
+<li><a href="#le-collage-intelligent-de-code-python"><span class="toc-section-number">3.1.6</span> Le collage intelligent de code python</a></li>
+<li><a href="#la-recherche-et-remplacement-avanc&#233;e"><span class="toc-section-number">3.1.7</span> La recherche et remplacement avanc&#233;e</a></li>
+<li><a href="#linsertiong&#233;n&#233;ration-de-code-python"><span class="toc-section-number">3.1.8</span> L'insertion/g&#233;n&#233;ration de code python</a></li>
+<li><a href="#lex&#233;cution-de-code"><span class="toc-section-number">3.1.9</span> L'ex&#233;cution de code</a></li>
+<li><a href="#la-compl&#233;tion-de-mots-cl&#233;-ou-compl&#233;tion-de-code"><span class="toc-section-number">3.1.10</span> La compl&#233;tion de mots cl&#233; ou compl&#233;tion de code</a></li>
+<li><a href="#la-d&#233;finition-de-mot-cl&#233;"><span class="toc-section-number">3.1.11</span> La d&#233;finition de mot cl&#233;</a></li>
+<li><a href="#la-compilation-de-code-ou-cr&#233;ation-dex&#233;cutable"><span class="toc-section-number">3.1.12</span> La compilation de code ou cr&#233;ation d'ex&#233;cutable</a></li>
+<li><a href="#lex&#233;cution-de-commandes-pip"><span class="toc-section-number">3.1.13</span> L'ex&#233;cution de commandes pip</a></li>
+<li><a href="#les-am&#233;nagements-dacc&#233;ssibilit&#233;"><span class="toc-section-number">3.1.14</span> Les am&#233;nagements d'acc&#233;ssibilit&#233;</a></li>
+<li><a href="#la-personnalisation-de-raccourcis-clavier"><span class="toc-section-number">3.1.15</span> La personnalisation de raccourcis clavier</a></li>
+<li><a href="#la-gestion-de-versions-multiples-&#224;-un-document"><span class="toc-section-number">3.1.16</span> La gestion de versions multiples &#224; un document</a></li>
+<li><a href="#laide-au-codeur"><span class="toc-section-number">3.1.17</span> L'aide au codeur</a></li>
+</ul></li>
+<li><a href="#les-fonctionnalit&#233;s-de-gestion-de-projet-python"><span class="toc-section-number">3.2</span> Les fonctionnalit&#233;s de gestion de projet python</a><ul>
+<li><a href="#louverture-de-projets-python"><span class="toc-section-number">3.2.1</span> Louverture de projets python</a></li>
+<li><a href="#la-sauvegarde-de-projet-python"><span class="toc-section-number">3.2.2</span> La sauvegarde de projet python</a></li>
+<li><a href="#lex&#233;cution-et-la-compilation-de-projet"><span class="toc-section-number">3.2.3</span> L'ex&#233;cution et la compilation de projet</a></li>
+<li><a href="#lexploration-et-la-gestion-des-fichiers-dun-projet-python"><span class="toc-section-number">3.2.4</span> L'exploration et la gestion des fichiers d'un projet python</a></li>
+</ul></li>
+</ul></li>
 </ul>
 </div>
 <h1 id="pr&#233;sentation"><span class="header-section-number">1</span> Pr&#233;sentation</h1>
-<p>forPython est une extension pour l'&#233;diteur de texte 6pad++ cr&#233;&#233; par QuentinC, servant &#224; am&#233;liorer l'accessibilit&#233; du codage en langage &quot;Python&quot;, pour les d&#233;veloppeurs.</p>
+<p>forPython est une extension pour l'&#233;diteur de texte <a href="https://github.com/qtnc/6pad2">6pad++</a> cr&#233;&#233; par QuentinC, servant &#224; am&#233;liorer l'accessibilit&#233; du codage en langage &quot;Python&quot;, pour les d&#233;veloppeurs.</p>
 <p>Son objectif est de proposer une interface accessible aux personnes d&#233;ficientes visuelles.</p>
-<p>Cette extension pourra &#234;tre utilis&#233;e avec les lecteurs d'&#233;cran suivants :</p>
+<p>Cette extension peut &#234;tre utilis&#233;e avec les lecteurs d'&#233;cran suivants :</p>
 <ol style="list-style-type: decimal">
 <li>JAWS;</li>
 <li>NVDA;</li>
@@ -59,17 +77,178 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+'&#x4
 </ol>
 <p><strong>Attention</strong>, cette extension a &#233;t&#233; cr&#233;&#233;e avec 6pad++, il faudra donc l'utiliser avec cette version de 6pad uniquement.</p>
 <p>Apr&#232;s son activation, forPython devrait vous ajouter certains menus et sous-menus dans votre application portable 6pad++.</p>
-<p>Par d&#233;faut, l'extension n'est pas activ&#233;e, il faudra l'activer en cochant &quot;Activer le forPython&quot; figurant dans le menu outil de 6pad++.</p>
+<p>Par d&#233;faut, l'extension se lance &#224; l'ouverture de fichier python. Vous pourrez l'activer ou le d&#233;sactiver manuellement en validant sur &quot;Activer le forPython&quot; figurant dans le menu outil de 6pad++.</p>
 <p>Mais avant cel&#224;, il faudra tout d'abord l'installer !</p>
-<h1 id="installation"><span class="header-section-number">2</span> Installation</h1>
+<h1 id="installation-de-lextension-forpython"><span class="header-section-number">2</span> Installation de l'extension forPython</h1>
 <p>Pour installer l'extension forPython pour 6pad++, voici la proc&#233;dure :</p>
 <ul>
-<li>Dans le r&#233;pertoire o&#249; se situe l'ex&#233;cutable de lancement de 6pad++, cr&#233;ez un sous-r&#233;pertoire, que vous appellerez &quot;plugins&quot;;</li>
+<li>Dans le r&#233;pertoire o&#249; se situe l'ex&#233;cutable de lancement de 6pad++, cr&#233;ez (s'il n'existe pas d&#233;j&#224;) un sous-r&#233;pertoire, que vous appellerez &quot;plugins&quot;;</li>
 <li>Dans ce dossier &quot;plugins&quot;, collez l'archive &quot;forPython.zip&quot;, puis d&#233;compressez la, en s&#233;lectionnant le choix &quot;Extraire ici&quot; ou &quot;Extract here&quot;, si vous utilisez Winrar ou 7zip, Ceci devrait g&#233;n&#233;rer la cr&#233;ation d'un nouveau r&#233;pertoire dans votre dossier &quot;plugins&quot;, nomm&#233; &quot;forPython&quot;;</li>
 <li>Une fois l'archive d&#233;compress&#233;e dans le dossier &quot;plugins&quot;, vous pourrez vous d&#233;barrasser du fichier zip ou le d&#233;placer ailleurs de pr&#233;f&#233;rence;</li>
 <li>Ceci fait, remontez d'un niveau, et plus pr&#233;cis&#233;mment, dans le dossier o&#249; se situe l'ex&#233;cutable de 6pad++, puis ouvrez le fichier nomm&#233; &quot;6pad++.ini&quot;, S'il n'est pas pr&#233;sent, cr&#233;ez le, en choisissant bien l'encodage &quot;UTF-8&quot; ou de pr&#233;f&#233;rence &quot;UTF-8 sans bom&quot;;</li>
 <li>Si le fichier comporte d&#233;j&#224; des instructions, fa&#238;tes &quot;ctrl + fin&quot;, pour vous situer en fin de fichier, puis ajoutez une ligne, dans laquelle vous &#233;crirez ce qui suit, sans espaces : &quot;extension=plugins.forPython/init.py&quot;;</li>
-<li>Fa&#238;tes alors &quot;ctrl + s&quot; pour sauvegarder et &quot;Alt F4&quot;, pour quitter le fichier.</li>
+<li>Fa&#238;tes alors &quot;ctrl + s&quot; pour sauvegarder et &quot;Alt F4&quot;, pour quitter le fichier.# Les fonctionnalit&#233;s ajout&#233;es &#224; l'interface de 6pad++ par le forPythonL'extension forPython est sens&#233;e ajouter au 6pad++ des fonctionnalit&#233;s pour permettre principalement au d&#233;ficients visuels de coder facilement en langage python deux grands groupes:</li>
 </ul>
+<h1 id="les-fonctionnalit&#233;s-ajout&#233;es-&#224;-linterface-du-6pad-par-le-forpython"><span class="header-section-number">3</span> Les fonctionnalit&#233;s ajout&#233;es &#224; l'interface du 6pad++ par le forPython</h1>
+<p>On peut les ranger en deux grands groupes:</p>
+<ol style="list-style-type: decimal">
+<li>les fonctionnalit&#233;s autonomes &#224; un fichier;</li>
+<li>et les fonctionnalit&#233;s de gestion de projet python.</li>
+</ol>
+<h2 id="les-fonctionnalit&#233;s-autonomes-&#224;-un-fichier"><span class="header-section-number">3.1</span> 1. Les fonctionnalit&#233;s autonomes &#224; un fichier</h2>
+<p>Ce sont des fonctionnalit&#233;s qui s'appliquent &#224; un fichier qu'il appartienne &#224; un projet ou non. Elles sont les suivantes:</p>
+<h3 id="la-prise-en-charge-des-types-de-fichier-python-d&#232;s-leur-ouverture"><span class="header-section-number">3.1.1</span> La prise en charge des types de fichier python d&#232;s leur ouverture</h3>
+<p>Dans la fen&#234;tre des options (menu outils, options ou CTRL+P), &#224; l'onglet &quot;g&#233;n&#233;ral&quot;, vous pouvez contr&#244;ler la fa&#231;on avec laquelle le forPython sera d&#233;clench&#233;. Trois possibilit&#233;s sont disponibles:</p>
+<ol style="list-style-type: decimal">
+<li>D&#233;clencher le forPython &#224; l'ouverture d'un fichier python;</li>
+<li>D&#233;clencher le forPython au d&#233;marrage de 6pad++;</li>
+<li>D&#233;clencher le forPython manuellement.</li>
+</ol>
+<p>Dans le m&#234;me onglet, vous pouvez pr&#233;ciser les types de fichiers que vous voudrez faire consid&#233;rer comme des fichiers python.</p>
+<h3 id="la-prise-en-charge-du-codage-dans-les-diverses-version-du-langage-python-install&#233;s-sur-lordinateur-courant"><span class="header-section-number">3.1.2</span> La prise en charge du codage dans les diverses version du langage python install&#233;s sur l'ordinateur courant</h3>
+<p>Vous pouvez choisir l'interpr&#233;teur python avec lequel travailler dans le forPython. Ce choix se fait parmi les version de python qui auront &#233;t&#233; d&#233;tect&#233;s sur votre ordinateur.</p>
+<p>Dans le menu outils, versions de python install&#233;es, vous pourrez visualiser, ajouter ou s&#233;lectionner l'une de ces version de python.</p>
+<p>Le choix d'un interpr&#233;teur le valide comme v&#233;rificateur de la syntaxe et de la compl&#233;tion de code.</p>
+<p>A noter que dans la liste des interpr&#233;teurs disponibles, se trouvera &#233;galement le 6pad++ lui-m&#234;me, pour lequel vous pouvez employer le forPython afin de cr&#233;er ses extensions cod&#233;s en langage python.</p>
+<h3 id="le-d&#233;placement-dans-les-fichiers-python"><span class="header-section-number">3.1.3</span> Le d&#233;placement dans les fichiers python</h3>
+<p>Vous pouvez utiliser le d&#233;placement de point &#224; point ou le d&#233;placement hi&#233;rarchique.</p>
+<h4 id="le-d&#233;placement-de-point-&#224;-point"><span class="header-section-number">3.1.3.1</span> Le d&#233;placement de point &#224; point</h4>
+<p>Les &#233;l&#233;ments de menus li&#233;s &#224; ce type de d&#233;placement sont regroup&#233;s dans le menu Affichage, d&#233;placement. C'est ainsi qu'on peut y trouver les d&#233;placement: * A la classe ou fonction suivante (F2) * A la classe ou fonction pr&#233;c&#233;dente (SHIFT+F2) * A la classe suivante (CTRL+F2) * A la classe pr&#233;c&#233;dente (CTRL+SHIFT+F2) * A la fin de la classe ou fonction courante (ALT+F2) A la prochaine ligne de m&#234;me niveau ou inf&#233;rieur (F9) A la pr&#233;c&#233;dente ligne de m&#234;me niveau ou inf&#233;rieur (SHIFT+F9)</p>
+<p>CTRL+L vous affiche la liste des classes et fonctions du document courant.</p>
+<h4 id="le-d&#233;placement-hi&#233;rarchique-entre-les-blocs"><span class="header-section-number">3.1.3.2</span> Le d&#233;placement hi&#233;rarchique entre les blocs</h4>
+<p>Si vous utilisez un autre lecteur d'&#233;cran que JAWS, ALT+les fl&#232;ches de direction vous permettent de vous d&#233;placer de mani&#232;re hi&#233;rarchique dans les bloc de code. Sinon, utilisez les touches de F9 &#224; F12 pour ce faire.</p>
+<p>Les blocs sont les groupes de lignes de m&#234;me indentation du langage python.</p>
+<h3 id="la-s&#233;lection-de-code-python"><span class="header-section-number">3.1.4</span> La s&#233;lection de code python</h3>
+<p>Vous pouvez s&#233;lectionner</p>
+<ul>
+<li>La fonction courante (CTRL+R);</li>
+<li>La classe courante (CTRL+SHIFT+R).</li>
+</ul>
+<p>Ces commandes se trouvent dans le menu affichage, s&#233;lection de bloc.</p>
+<h3 id="le-balisage-de-code-python"><span class="header-section-number">3.1.5</span> Le balisage de code python</h3>
+<p>Pour faciliter la relecture de code python au d&#233;ficient visuel, le forPython peut ajouter des balises de commentaire en fin des blocs indent&#233;s. Du genre: # end if, # end class, # end def, etc...</p>
+<p>Pour ce faire, utilisez la commande du menu affichage, balisage de code, ajouter les balises de fin de bloc.</p>
+<p>Pour retirer ces balises et revenir &#224; l'affichage classique de code python, utilisez la commande affichage, balisage de code, retirer les balises de fin de bloc.</p>
+<p>Une commande existe &#233;galement pour ajuster l'indentation &#224; partir des balises de fin de bloc que vous auriez tap&#233; vous-m&#234;me, mais n'utilisez cette fonctionnalit&#233; qu'avec prudence car il existe des particularit&#233; avec les else en python qui peuvent causer une indentation erron&#233;e.</p>
+<p>Notez &#233;galement que lorsque du code est s&#233;lectionn&#233;, les commandes ci-dessus agissent sur cette s&#233;lection, sinon, sur tout le document.</p>
+<h3 id="le-collage-intelligent-de-code-python"><span class="header-section-number">3.1.6</span> Le collage intelligent de code python</h3>
+<p>Dans le menu Edition, type de collage, vous sont propos&#233; des choix de type de comportement en cas de collage de texte. Nous avons:</p>
+<ul>
+<li>Collage simple de texte: le texte sera coll&#233; tel quel sans aucun formattage;</li>
+<li>Collage de code python;: le texte &#224; coll&#233; sera formatt&#233; dans ses indentation et ses retours &#224; la lignes pour convenir au code &#224; l'emplacement du collage;</li>
+<li>Collage classique de 6pad++: le texte &#224; coll&#233; sera formatt&#233; suivant le comportement standard de 6pad++ avant le collage.</li>
+</ul>
+<p>Chaque changement de mode de collage sera conserv&#233; est restaur&#233; au red&#233;marrage du 6pad++.</p>
+<h3 id="la-recherche-et-remplacement-avanc&#233;e"><span class="header-section-number">3.1.7</span> La recherche et remplacement avanc&#233;e</h3>
+<p>Dans le menu Edition, recherche et remplacement avanc&#233;, vous est propos&#233; l'ex&#233;cution d'une bo&#238;te de dialogue vous permettant de faire des recherches multicrit&#232;res prenant en compte, les onglets ouvert, les classes, fonctions et s&#233;lection. Mais &#233;galement, le sens de la recherche, le type de recherche, le respect de la cass ou non, etc.</p>
+<p>Ce type de recherche vous est recommand&#233; pour les &#233;ventuelles refactorisation dans le code python.</p>
+<h3 id="linsertiong&#233;n&#233;ration-de-code-python"><span class="header-section-number">3.1.8</span> L'insertion/g&#233;n&#233;ration de code python</h3>
+<p>Dans le menu python, insertion, vous sont propos&#233;s des moyens de g&#233;n&#233;rer du code python rapidement. A savoir:</p>
+<ul>
+<li>Ins&#233;rer une instruction d'en-t&#234;te de fichier</li>
+<li>ins&#233;rer un import</li>
+<li>ins&#233;rer une nouvelle fonction</li>
+<li>ins&#233;rer une nouvelle classe</li>
+<li>ins&#233;rer une r&#233;f&#233;rence &#224; un fichier</li>
+</ul>
+<h3 id="lex&#233;cution-de-code"><span class="header-section-number">3.1.9</span> L'ex&#233;cution de code</h3>
+<p>Dans le menu python, ex&#233;cution, vous sont regroup&#233;s les commandes d'ex&#233;cutions que sont:</p>
+<ul>
+<li>ex&#233;cuter le module qui permet d'ex&#233;cuter le module entier ou la partie du module couramment s&#233;lectionn&#233;e.</li>
+<li>ex&#233;cuter le projet: qui n'appara&#238;t que lorsqu'un projet est ouvert.</li>
+</ul>
+<h3 id="la-compl&#233;tion-de-mots-cl&#233;-ou-compl&#233;tion-de-code"><span class="header-section-number">3.1.10</span> La compl&#233;tion de mots cl&#233; ou compl&#233;tion de code</h3>
+<p>La compl&#233;tion de code est une fonctionnalit&#233; qui &#233;vite &#224; l'utilisateur de faire des aller et retour dans la documentation. Elle se d&#233;clenche par le raccourci CTRL+J ou menu python, compl&#233;tion de code. Elle affiche une liste de mots cl&#233; que vous pouvez choisir pour compl&#233;ter le mot dont vous avez tap&#233; les premi&#232;res lettres sous le curseur</p>
+<p>Les propositions sont contextuelles. C'est-&#224;-dire qu'elles s'adaptent &#224; ce qu'il ya ou n'y a pas sous le curseur. C'est ainsi que:</p>
+<ul>
+<li>lorsque le curseur est apr&#232;s le mot cl&#233; import, il vous est uniquement propos&#233; un ensemble de modules et de classe disponibles dans l'interpr&#233;teur actuellement s&#233;lectionn&#233;.</li>
+<li>lorsque le curseur est apr&#232;s un point ou directement sur les lettres apr&#232;s un point, il vous est propos&#233; la liste des membres de la classe ou l'objet dont le nom se trouve avant le point;</li>
+<li>lorsque le curseur est au d&#233;but d'une expression ou apr&#232;s un caract&#232;re neutre il vous est propos&#233; une liste comportant les mots cl&#233;s du langage python, les noms des classes, fonctions et variables d&#233;j&#224; cr&#233;&#233;s dans le document courant, les membres des imports d&#233;j&#224; r&#233;alis&#233;s dans le document courant, etc...</li>
+</ul>
+<h3 id="la-d&#233;finition-de-mot-cl&#233;"><span class="header-section-number">3.1.11</span> La d&#233;finition de mot cl&#233;</h3>
+<p>Tout comme la compl&#233;tion de code, elle &#233;vite de faire des aller et retour dans la documentation. C'est une fonctionnalit&#233; qui affiche l'aide documentaire pour le mot cl&#233; sous le curseur dans la fen&#234;tre console du 6pad++. Elle se d&#233;clenche par le raccourci CTRL+I, ou menu python, d&#233;finition de mot cl&#233;. Vous pourrez ainsi afficher l'aide pour:</p>
+<ul>
+<li>les nom de modules;</li>
+<li>les noms de classes;</li>
+<li>les membres de classes;</li>
+<li>les noms de fonctions;</li>
+<li>les noms de variables.</li>
+</ul>
+<h3 id="la-compilation-de-code-ou-cr&#233;ation-dex&#233;cutable"><span class="header-section-number">3.1.12</span> La compilation de code ou cr&#233;ation d'ex&#233;cutable</h3>
+<p>Avant de lancer cette commande, vous devez au pr&#233;alable s&#233;lectionner un interpr&#233;teur dans lequel vous avez install&#233; le module py2exe. Elle se trouve dans le menu python, Cr&#233;er un ex&#233;cutable avec py2exe.</p>
+<p>Lorsqu'elle est ex&#233;cut&#233;e un traitement sera effectu&#233; qui aboutira &#224; un message dans la fen&#234;tre console de 6pad++. En cas de succ&#232;s, il sera cr&#233;&#233; &#224; la racine du projet ou dans le dossier contenant le fichier &#224; partir duquel l'ex&#233;cution a &#233;t&#233; lanc&#233; un sous-dossier nomm&#233; &quot;dist&quot; qui contiendra l'ex&#233;cutable et toutes les dll associ&#233;es.</p>
+<h3 id="lex&#233;cution-de-commandes-pip"><span class="header-section-number">3.1.13</span> L'ex&#233;cution de commandes pip</h3>
+<p>Vous devez avoir pip install&#233; dans la version de python que vous utilisez. Dans le menu python, ex&#233;cuter une commande.</p>
+<h3 id="les-am&#233;nagements-dacc&#233;ssibilit&#233;"><span class="header-section-number">3.1.14</span> Les am&#233;nagements d'acc&#233;ssibilit&#233;</h3>
+<p>Le forPython cr&#233; un menu Accessibilit&#233; sur la barre de menu du 6pad++.</p>
+<p>Comme commande, ce menu contient:</p>
+<ul>
+<li>Activer la synth&#232;se vocale: pour activer ou d&#233;sactiver la synth&#232;se vocale. Utile pour des mal-voyant ou des voyant ne voulant pas ou n'ayant pas de synth&#232;se vocale.</li>
+<li>Activer la lecture du niveau d'indentation seulement si changement: qui lorsque activ&#233; fait dire automatiquement le niveau d'indentation de la nouvelle ligne si celui-ci est diff&#233;rent du niveau d'indentation de l'avant derni&#232;re ligne sur laquelle on &#233;tait.</li>
+<li>lire le nom du bloc courant: qui est une commande de rep&#233;rage</li>
+<li>lire le nom de l'interpr&#233;teur courant</li>
+<li>lire le niveau d'indentation courant</li>
+</ul>
+<p>On y trouve &#233;galement les menu de lecture de l'en-t&#234;te de ligne. Ce sont des menus qui active ou d&#233;sactivent des lectures particuli&#232;res lorsqu'on se d&#233;place de ligne en ligne dans le document. Il repr&#233;sentent des modes entre lesquels on peut basculer par le raccourci CTRL+SHIFT+L. Il s'agit des modes suivants:</p>
+<p>Ne rien dire Dire les num&#233;ros de ligne Dire les indentations Dire les num&#233;ros de ligne et les indentations dire les niveaux Dire les num&#233;ros de ligne et les niveaux</p>
+<h3 id="la-personnalisation-de-raccourcis-clavier"><span class="header-section-number">3.1.15</span> La personnalisation de raccourcis clavier</h3>
+<p>Dans le menu outils, Raccourcis clavier se trouvent des commandes de personnalisation des raccourcis clavier de menu.</p>
+<p>En validant sur le menu &quot;Gestion des raccourcis clavier&quot; ou par le raccourci CTRL+M, vous ferez afficher une bo&#238;te de dialogue dans laquelle vous seront list&#233;s tous les raccourcis clavier li&#233;s aux menus de l'interface du 6pad++.</p>
+<p>Par le menu contextuel d&#233;clench&#233; sur un &#233;l&#233;ment de la liste, vous pourrez:</p>
+<ul>
+<li>modifier un raccourcis clavier</li>
+<li>Restaurer le raccourcis clavier d'origine;</li>
+<li>rechercher dans la liste des raccourcis clavier.</li>
+</ul>
+<h3 id="la-gestion-de-versions-multiples-&#224;-un-document"><span class="header-section-number">3.1.16</span> La gestion de versions multiples &#224; un document</h3>
+<p>Le forPython vous permet de garder une version &#224; un document et de le restaurer si besoin est.</p>
+<p>Dans le menu fichier, versions de document, vous avez un ensemble de commandes vous servant &#224; g&#233;rer les versions au document courant. A savoir:</p>
+<ul>
+<li>sauvegarder une nouvelle version</li>
+<li>sauvegarder le texte courant dans une ancienne version</li>
+<li>remplacer le texte courant par celui d'une ancienne version</li>
+<li>afficher le texte d'une ancienne version dans un nouvel onglet</li>
+<li>supprimer une ancienne version sauvegard&#233;e.</li>
+</ul>
+<h3 id="laide-au-codeur"><span class="header-section-number">3.1.17</span> L'aide au codeur</h3>
+<p>Le forPython regroupe un ensemble de fichier d'aide au codeur dans le menu aide. A savoir:</p>
+<ul>
+<li>L'aide de l'extension forPython: o&#249; vous sont donn&#233;s des directives quant &#224; l'emploi de cette extension.</li>
+<li>l'aide du langage python: qui regroupe les fichiers chm trouv&#233;s dans tous les interpr&#233;teurs reconnus sur l'ordinateur de l'utilisateur.</li>
+</ul>
+<h2 id="les-fonctionnalit&#233;s-de-gestion-de-projet-python"><span class="header-section-number">3.2</span> Les fonctionnalit&#233;s de gestion de projet python</h2>
+<p>Le forPython se d&#233;clenche lors de l'ouverture des fichiers python isol&#233;s, mais peut &#233;galement ouvrir des projets python et offrir des moyens de les monitorer.</p>
+<h3 id="louverture-de-projets-python"><span class="header-section-number">3.2.1</span> Louverture de projets python</h3>
+<p>Le forPython peut ouvrir:</p>
+<ul>
+<li>de nouveau projets python (menu fichier, nouveau, projet)</li>
+<li>un projet en d&#233;signant son dossier (menu fichier, ouvrir un projet)</li>
+<li>un projet r&#233;cent (menu fichier, projets r&#233;cents)</li>
+</ul>
+<p>A l'ouverture d'un projet, si c'est la premi&#232;re fois, il sera demand&#233; de d&#233;terminer:</p>
+<ul>
+<li>le nom du projet;</li>
+<li>le type de projet</li>
+<li>le fichier de d&#233;marrage du projet.</li>
+</ul>
+<p>Un fichier project.pyproj est cr&#233;&#233; &#224; la racine du dossier du projet contenant ces informations qui sont sens&#233; &#234;tre utilis&#233;es plus tard, lors des ex&#233;cution et des compilations par exemple.</p>
+<p>Lorsqu'un projet python est ouvert:</p>
+<ul>
+<li>son nom appara&#238;t sur la barre de titre de 6pad++;</li>
+<li>il appara&#238;t le menu &quot;projet&quot; sur la barre des menus de 6pad++;</li>
+<li>tous les modules python trouv&#233;s dans son dossier sont ouvert dans des onglets diff&#233;rents.</li>
+</ul>
+<h3 id="la-sauvegarde-de-projet-python"><span class="header-section-number">3.2.2</span> La sauvegarde de projet python</h3>
+<p>Vous pouvez en quelques clicks sauvegarder l'ensemble du projet python ouvert. Dans le menu projet, sauvegarde du projet se trouvent deux commandes:</p>
+<ul>
+<li>param&#232;tres de sauvegarde du projet: qui vous servira &#224; d&#233;terminer les conditions des sauvegardes;</li>
+<li>lancer la sauvegarde du projet: qui vous servira &#224; ex&#233;cuter la sauvegarde.</li>
+</ul>
+<p>Notez &#233;galement que dans le menu fichier, enregistrer le projet sous, vous pouvez cr&#233;er une copie du projet vers un emplacement que vous d&#233;signerez.</p>
+<h3 id="lex&#233;cution-et-la-compilation-de-projet"><span class="header-section-number">3.2.3</span> L'ex&#233;cution et la compilation de projet</h3>
+<p>Lorsqu'un projet est ouvert, apparaissent des &#233;l&#233;m&#233;nts de menu li&#233;s &#224; l'ex&#233;cution et la compilation de projet dans le menu python.</p>
+<h3 id="lexploration-et-la-gestion-des-fichiers-dun-projet-python"><span class="header-section-number">3.2.4</span> L'exploration et la gestion des fichiers d'un projet python</h3>
+<p>Vous pouvez explorer les fichiers principaux dans un projet python en faisant CTRL+T ou menu projet, Explorateur de projet.</p>
+<p>Dans l'arborescence qui s'ouvre, utilisez le menu contextuel pour d&#233;couvrir les possibilit&#233;s qui vous sont offertes pour chaque &#233;l&#233;ment de cette arborescence.</p>
 </body>
 </html>

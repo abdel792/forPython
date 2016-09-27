@@ -1,0 +1,220 @@
+<HTML>
+	<HEAD> 
+		<TITLE>Créer une nouvelle classe</TITLE>
+		<HTA:APPLICATION ID='Document1' APPLICATIONNAME='Document1' CAPTION='yes' CONTEXTMENU='yes' MAXIMIZEBUTTON='yes' MINIMIZEBUTTON='yes' NAVIGABLE='yes' SELECTION='yes' SHOWINTASKBAR='yes' SYSMENU='yes' WindowState='normal' >
+
+			<script language="VBScript">
+
+
+dim sKey: sKey = ""
+
+Sub Window_onLoad()
+' se lance au démarrage de la fenêtre
+document.form1.className.focus()
+			End Sub
+
+Sub Document_OnKeyUp()
+intKeyCode = Window.Event.Keycode
+If intKeyCode = 27 Then form1_cancel
+End Sub
+
+sub className_onFocus()
+'
+document.form1.className.select
+end sub
+
+sub className_onkeydown(keyascii)
+' appuie sur les touches
+sKey = sKey & " " & keyascii
+end sub
+
+sub description_onFocus()
+'
+document.form1.description.select
+end sub
+
+sub form1_validate()
+' à la validation du formulaire
+' on va généré le texte à écrire dans le fichier ini intermédiaire
+dim s: s = ""
+dim v: v = ""
+on error resume next
+' le nom de la classe
+v = document.form1.className.value
+if v = "" then
+MsgBox "Vous devez obligatoirement taper le nom de la classe avant d'effectuer cette action.", vbOKOnly+vbExclamation, "Erreur- nom de la classe manquante" 
+document.form1.className.focus()
+exit sub
+end if
+s = s & "className=" & v & vbcrlf
+' si description de la classe
+v = FormatResult(document.form1.description.value)
+s = s & "description=" & v & vbcrlf
+' si fonction initialize
+v = abs(cInt(document.form1.funcInitialize.checked))
+s = s & "funcInitialize=" & v & vbcrlf
+' si fonction terminate
+v = abs(cInt(document.form1.funcTerminate.checked))
+s = s & "funcTerminate=" & v & vbcrlf
+' les variables globales
+v = FormatResult(document.form1.globals.value)
+s = s & "globals=" & v & vbcrlf
+'  les propriétés
+v = FormatResult(document.form1.properties.value)
+s = s & "properties=" & v & vbcrlf
+' les méthodes
+v = FormatResult(document.form1.methods.value)
+s = s & "methods=" & v & vbcrlf
+'
+' on trouve le chemin vers le fichier ini intermédiaire
+sPath = document.location.pathname
+tbl = split(sPath, "\")
+redim preserve tbl(ubound(tbl)-1)
+sPath = join(tbl, "\")
+sPath = sPath & "\" & "com.ini"
+writeFile sPath, s, true
+window.close
+end sub
+
+sub form1_cancel()
+' bouton annuler
+window.close
+End sub
+
+function readFile(sPath)
+' lit et renvoi le contenu d'un fichier
+s=""
+on error resume next
+set fso=CreateObject("Scripting.FileSystemObject")
+set fichier=fso.GetFile(sPath)
+set ts=fichier.OpenAsTextStream
+' ForReading
+s=ts.ReadAll
+ts.Close
+set ts=nothing
+set fichier=nothing
+set fso=nothing
+readFile = s
+end function
+
+Function WriteFile (sFilePath, sText, BlErase)
+'' écriture dans un fichier
+on error resume next
+set fs = CreateObject("Scripting.FileSystemObject")
+'
+' si on doit écraser ou pas
+if BlErase = true then
+Set FSStream = fs.CreateTextFile(sFilePath, True)
+FSStream.Write (sText) 
+FSStream.Close
+else ' il s'agit d'un ajout au fichier
+Set f = FS.GetFile(sFilePath)
+Set FSStream = f.OpenAsTextStream(8)
+FSStream.WriteLine sText
+FSStream.Close
+end if ' fin si BlErase
+Set FSStream = Nothing
+set f = nothing
+set FS = Nothing
+End Function
+
+function FormatResult(s)
+'
+dim s2: s2 = ""
+dim reg
+set reg = CreateObject("vbscript.regexp")
+reg.Global = true
+reg.IgnoreCase = true
+reg.Multiline = false
+reg.Pattern = "[^\r\n]+"
+set found = reg.Execute(s)
+if found.count > 0 then
+for i = 0 to found.count-1
+if i > 0 then s2 = s2 & ",,,"
+s2 = s2 & found(i).value
+next
+end if
+set found = nothing
+set reg = nothing
+' renvoi
+FormatResult = s2
+end function
+
+		</script>
+	</HEAD>
+	<BODY>
+
+<form name="form1" onSubmit="form1_validate">
+
+<table>
+
+<tr><td>
+<label for="className">Nom de la classe:</label>
+</td><td>
+<input type="text" name="className" id="className" />
+</td></tr>
+
+<tr><td colspan="2">
+<label for="description">Description de la classe:</label>
+<br />
+<textarea name="description" id="description" rows="3" cols="40"></textarea>
+</td></tr>
+
+<tr><td colspan="2">
+<input type="checkbox" name="funcInitialize" id="funcInitialize" />
+<label for="funcInitialize">Créer la fonction évènementielle __init__ représentant le constructeur</label>
+</td></tr>
+
+<tr><td colspan="2">
+<input type="checkbox" name="funcTerminate" id="funcTerminate" />
+<label for="funcTerminate">Créer la fonction évènementielle __del__ représentant le destructeur</label>
+</td></tr>
+
+<tr><td colspan="2">
+<label for="globals">Liste des variables globales (séparés par des retours à la ligne):</label>
+<br />
+<textarea name="globals" id="globals" rows="5" cols="40"></textarea>
+</td></tr>
+
+<tr><td colspan="2">
+<label for="properties">Liste des noms de propriétés (séparés par des retours à la ligne):</label>
+<textarea name="properties" id="properties" rows="5" cols="40"></textarea>
+</td></tr>
+
+<tr><td colspan="2">
+<label for="methods">Liste des noms de méthodes (séparés par des retours à la ligne):</label>
+<textarea name="methods" id="methods" rows="5" cols="40"></textarea>
+</td></tr>
+
+</table>
+
+<p>
+<INPUT Type="button" Value="Créer" onClick="form1_validate" />
+
+<INPUT Type="button" Value="Annuler" onClick="form1_cancel" />
+</p>
+
+</form>
+
+	</BODY>
+</HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

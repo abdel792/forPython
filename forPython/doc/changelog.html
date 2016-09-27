@@ -1,0 +1,228 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>Changements et historique des modifications pour l'extension forPython</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+<div id="header">
+<h1 class="title">Changements et historique des modifications pour l'extension forPython</h1>
+</div>
+<p>. .</p>
+<h1 id="section">21-01-2016</h1>
+<ul>
+<li>Navigation parmi les fonctions d'un module par F2 et Shift+F2.</li>
+<li>Navigation parmi les classes d'un module par F7 et Shift+F7.</li>
+<li>Affichage de la liste des &#233;l&#233;ments (class et def) du code par Ctrl+L.</li>
+</ul>
+<h1 id="section-1">22-01-2016</h1>
+<ul>
+<li>D&#233;sormais, dans la liste d'&#233;l&#233;ments, le nom de la fonction ou classe est dit en premier, suivi de classe ou fonction, suivi du niveau.</li>
+</ul>
+<h1 id="section-2">23-01-2016</h1>
+<ul>
+<li>Avec CTRL+F8, on bascule d&#233;sormais entre le mode &quot;Dire les num&#233;ros de lignes&quot;, &quot;Dire les niveaux&quot;, &quot;Dire les num&#233;ros de lignes et les niveaux&quot;, et &quot;Ne rien dire&quot;, qui est le choix par d&#233;faut. Ces fonctionnalit&#233;s sont regroup&#233;es dans le menu &quot;Lecture des en-t&#234;tes de lignes&quot;.</li>
+</ul>
+<h1 id="section-3">25-01-2016</h1>
+<ul>
+<li>Positionnement sur l'&#233;l&#233;ment le plus proche du curseur lors de l'affichage de la liste des &#233;l&#233;ments.</li>
+</ul>
+<h1 id="section-4">28-01-2016</h1>
+<ul>
+<li>D&#233;sormais, toutes les commandes ainsi que leurs raccourcis claviers ont &#233;t&#233; int&#233;gr&#233;es dans un menu, &quot;for Python&quot;, situ&#233; entre le menu &quot;Format et le menu Outils.</li>
+<li>Possibilit&#233; de s&#233;lectionner la fonction courante avec CTRL+R, la classe courante avec CTRL+SHIFT+R, supprimer la fonction courante avec CTRL+D, supprimer la classe courante avec CTRL+SHIFT+D. Ces fonctionnalit&#233;s ont &#233;t&#233; regroup&#233;es dans les menus &quot;S&#233;lection&quot; et &quot;Suppression&quot;.</li>
+</ul>
+<h1 id="section-5">29-01-2016</h1>
+<ul>
+<li>D&#233;placement du menu &quot;for Python&quot; dans le menu Outils de 6pad++.</li>
+</ul>
+<h1 id="section-6">04-02-2016</h1>
+<ul>
+<li>Vocalisation des changements de niveaux avec tab, shift+tab, ou backSpace, lorsqu'on est en d&#233;but de ligne.</li>
+<li>D&#233;sormais, en r&#233;alisant le raccourci clavier &quot;CTRL+M&quot;, chacune et chacun pourra modifier les raccourcis-claviers des diff&#233;rentes commandes, selon les pr&#233;f&#233;rences.</li>
+</ul>
+<h1 id="section-7">07-02-2016</h1>
+<ul>
+<li>D&#233;sormais, vous disposez d'un nouveau mode de lecture des ent&#234;tes de lignes, il s'agit de la lecture des indentations, ainsi que la lecture des num&#233;ros de lignes et des indentations.</li>
+<li>D&#233;sormais, dans la liste des fonctions dont on va souhaiter modifier les raccourcis-clavier, la liste recueille maintenant les noms de chaque item en fran&#195;&#167;ais, en allant les rechercher dans les labels des menus correspondant.</li>
+<li>La fonction getCurScriptFolderPath a bien &#233;t&#233; corrig&#233;e et devrait fonctionner quel que soit le contexte du r&#233;pertoire o&#195;&#185; figurera l'extension forPython.</li>
+</ul>
+<h1 id="section-8">08-02-2016</h1>
+<ul>
+<li>Prise en compte du niveau d'indentation, lors de l'utilisation de la touche backSpace lorsqu'on est en d&#233;but de ligne.</li>
+<li>Correction d'une petite erreur concernant la lecture des ent&#234;tes de lignes dans l'&#233;v&#233;nement keyUp.</li>
+</ul>
+<h1 id="section-9">15-02-2016</h1>
+<ul>
+<li>Listage des versions de python install&#233;es sur l'ordinateur courant dans un sous-menu du menu forPython.</li>
+<li>Le sous-menu forPython comporte d&#233;sormais une commande ex&#233;cuter, activable gr&#195;&#162;ce au raccourci clavier CTRL+F5, qui ex&#233;cutera, selon la version de Python choisie dans le menu, la version de Python qui sera coch&#233;e et l'associera au module en cours d'impl&#233;mentation. Il conviendra alors de s&#233;lectionner dans le module en cours d'exploration, la partie du code que l'on souhaite voir s'ex&#233;cuter, avant de lancer le raccourci CTRL+F5, la sortie sera dirig&#233;e vers la console.</li>
+<li>Si on coche une version install&#233;e sur le PC, la s&#233;lection du code &#224; ex&#233;cuter ne sera pas indispensable, ce sera tout le module en cours d'exploration ou d'impl&#233;mentation qui sera ex&#233;cut&#233;, et la sortie redirig&#233;e vers un fichier logFile.log, qui sera ouvert automatiquement.</li>
+<li>Les regexps servant &#224; atteindre les classes et fonctions ont &#233;t&#233; r&#233;unies dans un dictionnaire, qui pourra &#234;tre enrichi par d'autres regexps, au cas o&#195;&#185; on souhaiterais exploiter d'autres langages de programmation, diff&#233;rents du Python.</li>
+<li>La fonction &#233;v&#233;nementielle onKeyUp a &#233;t&#233; mise &#224; jour.</li>
+</ul>
+<h1 id="section-10">17-02-2016</h1>
+<ul>
+<li>Correction d'un bug et am&#233;lioration de la reconnaissance de r&#233;pertoire des pythons install&#233;s.</li>
+<li>Cr&#233;ation d'une variable globale pour la conservation du chemin de l'ex&#233;cutable de python s&#233;lectionn&#233;.</li>
+</ul>
+<h1 id="section-11">23-02-2016</h1>
+<ul>
+<li>Lorsqu'une erreur est d&#233;tect&#233;e dans le module en cours d'ex&#233;cution, une alerte s'affiche, donnant &#224; l'utilisateur la ligne o&#195;&#185; se situe l'erreur, et l'invitant &#224; valider sur OK pour l'atteindre directement dans le module concern&#233;. Cette alerte invite &#233;galement l'utilisateur &#224; consulter la console, ainsi que le fichier logfile.log, pour plus de d&#233;tails sur l'erreur trouv&#233;e.</li>
+<li>Si le fichier en cours n'est pas sauvegard&#233; lors de son ex&#233;cution, l'utilisateur sera invit&#233; &#224; valider sur OK pour sauvegarder son module dans un fichier tmp.py, figurant dans le m&#234;me r&#233;pertoire que l'ex&#233;cutable de 6pad++. Il devra ensuite relancer son raccourci pour r&#233; ex&#233;cuter son module.</li>
+<li>Am&#233;lioration du rapport des tracebacks (retours d'erreurs).</li>
+</ul>
+<h1 id="section-12">25-02-2016</h1>
+<ul>
+<li>Am&#233;lioration de la fonction d'identification de la ligne d'erreur.</li>
+</ul>
+<h1 id="section-13">06-03-2016</h1>
+<ul>
+<li>Am&#233;lioration pour prise en compte de l'installation de python 3.5 sur l'ordinateur courant.</li>
+</ul>
+<h1 id="section-14">07-03-2016</h1>
+<ul>
+<li>D&#233;sormais, le d&#233;placement parmi les classes suivantes et pr&#233;c&#233;dentes est possible, avec CTRL+F2 et CTRL+SHIFT+F2.</li>
+<li>Les accelerators des items de menu se r&#233;f&#232;rent d&#233;sormais &#233;galement &#224; un dictionnaire, car la fonction modifyShortcuts a besoin aussi de conna&#238;tre ses accelerators, pour permettre de proposer aux utilisateurs de les modifier au besoin.</li>
+</ul>
+<h1 id="section-15">10-03-2016</h1>
+<ul>
+<li>Impl&#233;mentation de l'ajout d'un nouveau sous-menu dans le menu &quot;for Python&quot;, qui permet de mettre &#224; jour le module pip, apr&#232;s v&#233;rification de sa r&#233;elle disponibilit&#233;.</li>
+</ul>
+<h1 id="section-16">15-03-2016</h1>
+<ul>
+<li>Compilation avec Py2exe pour Python27 CTRL+F10. Son affichage est conditionn&#233; &#224; la version de Python que vous utilisez.</li>
+<li>Ex&#233;cution de commandes PIP CTRL+F11. Son affichage est conditionn&#233; &#224; la version de Python que vous utilisez. Cette commande permettant d'ex&#233;cuter une commande PIP &#224; partir d'une liste, nous donne acc&#232;s &#224; la possibilit&#233; d'installer wxPython_Phoenix pour Python 3 ainsi que Py2exe pour Python 3.3 et plus.</li>
+<li>Possibilit&#233; d'installation d'un package avec un script setup.py CTRL+F12.</li>
+</ul>
+<h1 id="section-17">16-03-2016</h1>
+<ul>
+<li>Ajout de la commande permettant d'entrer une commande &#224; ex&#233;cuter, gr&#195;&#162;ce au raccourci CTRL+SHIFT+E. L'utilisateur devra alors saisir uniquement tout ce qui suivra le chemin de l'ex&#233;cutable de Python, dans sa commande, car celui-ci sera d&#233;j&#224; pris en compte, selon la version de Python utilis&#233;e. Le r&#233;sultat s'affichera alors dans la console, ainsi que dans le fichier logfile.log. Par exemple, pour conna&#238;tre sa version de Python, -V devrait l'afficher dans la console, si on utilise une version 2 ou sup&#233;rieure de Python. C'est surtout l'option -h qui est int&#233;ressante, car elle affiche l'aide de toutes les options disponibles, si on l'&#233;crit toute seule. On peut aussi l'utiliser pour obtenir l'aide sur une commande pip, par exemple . -m pip install -. Devrait nous afficher l'aide sur la commande install.</li>
+</ul>
+<h1 id="section-18">25-04-2016</h1>
+<ul>
+<li>Contextualisation du d&#233;ploiement du forPython uniquement aux fichiers python &#224; l'extension .py et .pyw.</li>
+<li>R&#233;organisation des menu avec notamment les cr&#233;ations des menus &quot;affichage&quot;, &quot;python&quot; et &quot;accessibilit&#233;&quot; dans l'interface de 6pad++.</li>
+<li>R&#233;-&#233;criture et formalisation des noms des menus principaux dans le code.</li>
+<li>Renommage du fichier log.txt en changes.txt.</li>
+<li>Ajout de l'activation et de la d&#233;sactivation de la synth&#232;se vocale dans le menu accessibilit&#233;.</li>
+<li>Correction d'un bug dans la regexp se d&#233;clenchant lors du d&#233;placement d'&#233;l&#233;ment en &#233;l&#233;ment.</li>
+<li>Ajout de beep &#224; l'atteinte des limites haut et bas du document courant.</li>
+<li>Ajout de commandes d'exploration des blocs de code par alt+left, alt+up, alt+right, et alt+down.</li>
+<li>Ajout d'une fonctionnalit&#233; de rafra&#238;chissement et reformatage de code (menu affichage).</li>
+<li>Ajout d'une fonctionnalit&#233; de d&#233;finition de mot cl&#233; sous le curseur (menu python).</li>
+<li>Ajout d'une fonctionnalit&#233; de compl&#233;tion de code sous le curseur (menu python).</li>
+<li>Ajout de menu d'insertion de balises de fin de bloc &#224; la basic au code s&#233;lectionn&#233; ou non (menu affichage).</li>
+<li>Ajout d'un rechercher et remplacer avanc&#233; (menu &#233;dition).</li>
+<li>Ajout de l'insertion du code d'une fonction par une fen&#234;tre interm&#233;diaire (menu python).</li>
+<li>Ajout de l'insertion du code d'une classe par une fen&#234;tre interm&#233;diaire (menu python).</li>
+<li>Ajout de la v&#233;rification automatique de la syntaxe de la ligne venant d'&#234;tre modifi&#233;e.</li>
+</ul>
+<h1 id="section-19">01-05-2016</h1>
+<ul>
+<li>Ajout d'un item dans le menu outils permettant d'activer/d&#233;sactiver l'extension forPython.</li>
+</ul>
+<h1 id="section-20">02-05-2016</h1>
+<ul>
+<li>Ajout de tous les menus suppl&#233;mentaires dans le dictionnaire pour faciliter la modification des racourcis-clavier.</li>
+</ul>
+<h1 id="section-21">03-05-2016</h1>
+<ul>
+<li>Ajout de la v&#233;rification du nouveau raccourci-clavier choisi lors du changement de raccourcis-clavier avec CTRL+M.</li>
+</ul>
+<h1 id="section-22">04-05-2016</h1>
+<ul>
+<li>Ajustement des raccourcis-clavier permettant de naviguer parmi les blocs.</li>
+</ul>
+<h1 id="section-23">05-05-2016</h1>
+<ul>
+<li>Premi&#232;re &#233;bauche d'&#233;criture d'un fichier d'aide pour l'extension forPython, au format md.</li>
+<li>Renommage du fichier change.txt en change.md pour faciliter sa conversion en HTML.</li>
+<li>Ajout du fichier cahier-des-charges.md incluant les am&#233;liorations devant &#234;tre ajout&#233;es au forPython.</li>
+</ul>
+<h1 id="section-24">07-05-2016</h1>
+<ul>
+<li>Am&#233;lioration de la qualit&#233; des bo&#238;tes de dialogues en HTA permettant de cr&#233;er une nouvelle fonction, cr&#233;er une nouvelle classe et faire une recherche avanc&#233;e. C'est d&#233;sormais le module subprocess qui se charge d'ex&#233;cuter les applications HTA gr&#195;&#162;ce &#224; mshta.exe, Cependant, des am&#233;liorations doivent encore &#234;tre apport&#233;es &#224; ces bo&#238;tes de dialogues;</li>
+<li>Ajout de 2 nouveaux sous-menus dans le menu aide pour le r&#233;capitulatif des changements et le cahier des charges de l'extension forPython.</li>
+<li>Ajout d'un dossier &quot;doc&quot; dans le r&#233;pertoire forPython, pour permettre aux contributeurs d'enrichir la documentation.</li>
+</ul>
+<h1 id="section-25">27-07-2016</h1>
+<ul>
+<li>Changement du syst&#232;me d'ouverture des formulaire HTA;</li>
+<li>Perfectionnement de l'ajout/retrait des balises de fin de bloc au code;</li>
+<li>Correction de bug lors du raffra&#238;chissement de code(fonction refreshCode);</li>
+<li>Dans le menu &quot;affichage&quot;, cr&#233;ation d'un &#233;l&#233;ment de menu pour afficher les propri&#233;t&#233;s du document courant;</li>
+<li>Perfectionnement de l'ajustement des indentations &#224; partir des balises de fin de bloc (fonction AdjustIndentsByTags);</li>
+<li>Dans le menu &quot;accessibilit&#233;&quot;, ajout d'un &#233;l&#233;ment de menu cochable pour activer/d&#233;sactiver la lecture des niveaux d'indentation seulement si changement;</li>
+<li>Dans le menu outils, Versions de python, ajout d'un &#233;l&#233;ment de menu servant &#224; d&#233;signer manuellement l'emplacement d'une version de python suppl&#233;mentaire. Les nouveaux ajouts &#233;tant conserv&#233;s dans le fichier de configuration de 6pad + + ;</li>
+<li>Perfectionnement de la reconnaissance des limites des blocs de code(fonction getBlocsLimits);</li>
+<li>Int&#233;gration du module paste.py(pour g&#233;rer les alternatives de collage de texte) qui ajoute des &#233;l&#233;ments au menu &quot;Edition&quot;;</li>
+<li>Int&#233;gration du module versioning.py(pour g&#233;rer les sauvegardes de versions du document courant) qui ajoute des &#233;l&#233;ments au menu &quot;fichier&quot;;</li>
+<li>Int&#233;gration du module manageShortcuts.py(pour g&#233;rer les raccourcis clavier li&#233;s aux menus) qui ajoute des &#233;l&#233;ments au menu &quot;outils&quot;;</li>
+<li>Ajout de la fermeture par la touche &quot;&#233;chap&quot; &#224; tous les formulaires HTA;</li>
+<li>Am&#233;lioration de la mise en forme des formulaires HTA;</li>
+<li>Cr&#233;ation du formulaire HTA des options;</li>
+<li>Cr&#233;ation du formulaire HTA de la recherche avanc&#233;e;</li>
+<li>Ajout des d&#233;placement &#224; la ligne suivante ou pr&#233;c&#233;dente avec le m&#234;me niveau d'indentation;</li>
+<li>Renommage des fichier change en changelog;</li>
+<li>Correction d'un bug li&#233; au menu &quot;activer le forPython&quot; qui avait tendance &#224; se multiplier;</li>
+<li>Correction de bug concernant la v&#233;rification automatique de la syntaxe de la ligne modifi&#233;e qui survivait &#224; la d&#233;sactivation du forPython;</li>
+<li>Renommage de certains &#233;l&#233;ments de menus;</li>
+<li>For&#231;age de la prise de focus par le 6pad + + apr&#232;s fermeture des fen&#234;tre HTA;</li>
+<li>Ajout de la lecture du num&#233;ro de ligne au d&#233;placements d'&#233;l&#233;ment en &#233;l&#233;ment, de classe en classe, de d&#233;placement &#224; la fin de la classe ou fonction courante.</li>
+<li>Mise en activit&#233; du formulaire des options (ctrl+p). On peut y fixer le mode d'activation du forPython, y activer et d&#233;sactiver les modules associ&#233;s, activer ou d&#233;sactiver les options de d&#233;bugage, etc...</li>
+</ul>
+<h1 id="section-26">07-08-2016</h1>
+<ul>
+<li>Listage des fichiers d'aides li&#233;s aux versions de python install&#233;es dans le menu aide</li>
+<li>Correction de bugs et am&#233;lioration du formulaire de recherche et remplacement avanc&#233;.</li>
+<li>Assouplissement des contrainte d'installation de l'extension par: l'embarquement de la DLL qc6paddlgs.pyd, et la d&#233;tection automatique de l'emplacement des modules associ&#233;s.</li>
+</ul>
+<h1 id="section-27">10-08-2016</h1>
+<ul>
+<li>L'intelllicence et la d&#233;finition de mot cl&#233; prennent maintenant en compte: Les classes dans le documents en cours d'&#233;dition Les h&#233;ritages de classe Les mots cl&#233;s self et leurs membres Les modules import&#233;s sur la m&#234;me ligne Les variables d&#233;clar&#233;es en en-t&#234;te de fonction Les commentaires/documentations aux fonctions et classes</li>
+<li>For&#231;age de la s&#233;lection du texte lors de la prise de focus des champs texte dans les formulaires HTA.</li>
+<li>Cr&#233;ation du menu &quot;enregistrer tout&quot; pour enregistrer tous les onglets &#224; la fois dans le menu fichier.</li>
+<li>R&#233;solution de bug dans la compl&#233;tion de code relatif &#224; une erreur lors du remplacement d'une expression &#224; un seul caract&#232;re.</li>
+</ul>
+<h1 id="section-28">19-08-2016</h1>
+<ul>
+<li>Correction de bug au d&#233;marrage des fichiers non python.</li>
+<li>int&#233;gration de la gestion de projets python par:</li>
+<li>la cr&#233;ation de menus: nouveau projet, ouvrir un projet, projets r&#233;cents.</li>
+<li>la cr&#233;ation d'un menu principal &quot;projet&quot; avec plusieurs sous-menus appara&#238;ssant lorsqu'un projet est ouvert.</li>
+</ul>
+<h1 id="section-29">20-09-2016</h1>
+<ul>
+<li>ajout de message d'annonce lors de l'ex&#233;cution plusieurs commandes</li>
+<li>r&#233;solution de bug dans le formulaire rechercher et remplacer avanc&#233;</li>
+<li>r&#233;solution d'un bug dans le versioning qui appara&#238;ssait lors de la d&#233;sactivation et la r&#233;activation</li>
+<li>r&#233;solution de bugs de r&#233;&amp;affichage des valeurs dans les fen&#234;tre de recherche et remplacement avanc&#233;</li>
+<li>si pas de classe ou de fonction sous le curseur, donner l'ordre de masquer les options remplacer dans la classe ou fonction (formulaire rechercher et remplacer avanc&#233;)</li>
+<li>Cr&#233;ation de menus li&#233;s &#224; un projet ouvert</li>
+<li>refonte des commandes de s&#233;lection de la classe et de la fonction courante</li>
+<li>dans le menu python, insertion, cr&#233;er un menu ins&#233;rer une r&#233;f&#233;rence &#224; un fichier dans le menu python, insertion, cr&#233;er un menu ins&#233;rer un import</li>
+<li>R&#233;solution d'un bug se produisant lorsqu'on essai d'enregistrer le texte du du document courant dans un ancien enregistrement de version</li>
+<li>R&#233;solution de bug lors de la compl&#233;tion de code qui fait qu'avec l'interpr&#233;teur 6pad, les fonctions du documents courant ne sont pas trouv&#233;es</li>
+<li>Cr&#233;er des fonctions sayText dans tous les modules associ&#233;s pour mieux contr&#244;ler la d&#233;sactivation de la synth&#232;se vocale</li>
+<li>faire une commande de fermeture du projet courant</li>
+<li>R&#233;solution de bug lors de l'ex&#233;cution qui ne reconnaissait pas le dossier courant dans certains cas</li>
+<li>dans le menu raccourcis clavier, cr&#233;er deux menus pour:</li>
+<li>importer les configurations clavier</li>
+<li>exporter les configurations clavier</li>
+<li>R&#233;solution de bug d'ex&#233;cution d'un fichier non encore enregistr&#233;</li>
+<li>Donner la possibilit&#233; de faire dire quelle version de python est s&#233;lectionn&#233;e</li>
+<li>Regrouper les fichiers annexe utiles aux ex&#233;cution dans un dossier data</li>
+<li>Nettoyer l'ancien syst&#232;me des raccourcis clavier</li>
+<li>Changer l'emplacement du fichier de sauvegarde des racourci clavier personnalis&#233;s. Le mettre d&#233;sormais &#224; la racine de 6pad++</li>
+<li>Mettre en oeuvre la sauvegarde de projet</li>
+<li>Faire l'inscription du nom du projet sur la barre de titre</li>
+<li>Lors du renommage d'un fichier dans l'explorateur de projet, s'assurer que: le fichier de d&#233;marrage du projet soit modifi&#233; si n&#233;cessaire</li>
+<li>Mettre &#224; jour la liste des contributeurs dans le code. Ajout notamment du nom de Mathieu Barbe</li>
+<li>compl&#233;ter la documentation avec le logiciel pandoc</li>
+</ul>
+</body>
+</html>

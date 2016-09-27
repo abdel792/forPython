@@ -1,0 +1,15 @@
+# -*- coding: utf-8 -*-
+from distutils.core import setup
+import os
+# tentative d'importation d'un créateur d'exécutable
+curCompiler = 0
+# le py2exe
+try:
+	import py2exe
+	curCompiler = 1
+except: pass
+if curCompiler == 1:
+	setup(windows = [\scriptName\])
+else:
+	print("Impossible to compil because py2exe is unavailable.\nInstall it before trying this action again.")
+# end if

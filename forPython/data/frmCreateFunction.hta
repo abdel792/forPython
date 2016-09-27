@@ -1,21 +1,28 @@
 <HTML>
 	<HEAD> 
-		<TITLE>Créer une nouvelle classe</TITLE>
+		<TITLE>Nouvelle fonction</TITLE>
 		<HTA:APPLICATION ID='Document1' APPLICATIONNAME='Document1' CAPTION='yes' CONTEXTMENU='yes' MAXIMIZEBUTTON='yes' MINIMIZEBUTTON='yes' NAVIGABLE='yes' SELECTION='yes' SHOWINTASKBAR='yes' SYSMENU='yes' WindowState='normal' >
 
 			<script language="VBScript">
 
-
-dim sKey: sKey = ""
-
-Sub Window_onLoad()
+			Sub Window_onLoad
 ' se lance au démarrage de la fenêtre
-document.form1.className.focus()
+document.form1.funcName.focus()
 			End Sub
 
-sub className_onkeydown(keyascii)
-' appuie sur les touches
-sKey = sKey & " " & keyascii
+Sub Document_OnKeyUp()
+intKeyCode = Window.Event.Keycode
+If intKeyCode = 27 Then form1_cancel
+End Sub
+
+sub funcName_onFocus()
+'
+document.form1.funcName.select
+end sub
+
+sub description_onFocus()
+'
+document.form1.description.select
 end sub
 
 sub form1_validate()
@@ -24,33 +31,31 @@ sub form1_validate()
 dim s: s = ""
 dim v: v = ""
 on error resume next
-' le nom de la classe
-v = document.form1.className.value
+' le nom de la fonction
+v = document.form1.funcName.value
 if v = "" then
-MsgBox "Vous devez obligatoirement taper le nom de la classe avant d'effectuer cette action.", vbOKOnly+vbExclamation, "Erreur- nom de la classe manquante" 
-document.form1.className.focus()
+MsgBox "Vous devez obligatoirement taper le nom de la fonction avant d'effectuer cette action.", vbOKOnly+vbExclamation, "Erreur- nom de la fonction manquant" 
+document.form1.funcName.focus()
 exit sub
 end if
-s = s & "className=" & v & vbcrlf
-' si description de la classe
-v = FormatResult(document.form1.description.value)
+s = s & "funcName=" & v & vbcrlf
+' le type de la fonction
+v = document.form1.funcType.value
+if v = "" then
+MsgBox "Vous devez obligatoirement choisir le type de la fonction avant d'effectuer cette action.", vbOKOnly+vbExclamation, "Erreur- type de la fonction manquant" 
+document.form1.funcType.focus()
+exit sub
+end if
+s = s & "funcType=" & v & vbcrlf
+' si self
+v = abs(document.form1.self.checked)
+s = s & "self=" & v & vbcrlf
+' les paramètres de la fonction
+v = formatResult(document.form1.params.value)
+s = s & "params=" & v & vbcrlf
+' la description de la fonction
+v = formatResult(document.form1.description.value)
 s = s & "description=" & v & vbcrlf
-' si fonction initialize
-v = abs(cInt(document.form1.funcInitialize.checked))
-s = s & "funcInitialize=" & v & vbcrlf
-' si fonction terminate
-v = abs(cInt(document.form1.funcTerminate.checked))
-s = s & "funcTerminate=" & v & vbcrlf
-' les variables globales
-v = FormatResult(document.form1.globals.value)
-s = s & "globals=" & v & vbcrlf
-'  les propriétés
-v = FormatResult(document.form1.properties.value)
-s = s & "properties=" & v & vbcrlf
-' les méthodes
-v = FormatResult(document.form1.methods.value)
-s = s & "methods=" & v & vbcrlf
-'
 ' on trouve le chemin vers le fichier ini intermédiaire
 sPath = document.location.pathname
 tbl = split(sPath, "\")
@@ -63,7 +68,6 @@ end sub
 
 sub form1_cancel()
 ' bouton annuler
-' msgbox sKey
 window.close
 End sub
 
@@ -132,56 +136,52 @@ end function
 
 <form name="form1" onSubmit="form1_validate">
 
-<label for="className">Nom de la classe:</label>
-<input type="text" name="className" id="className" />
+<table>
 
+<tr><td>
+<label for="funcName">Nom de la fonction:</label>
+</td><td>
+<input type="text" name="funcName" id="funcName" />
+</td></tr>
+
+<tr><td colspan="2">
+<label for="description">Description du rôle de la fonction</label>
 <br />
-
-<label for="description">Description de la classe:</label>
 <textarea name="description" id="description" rows="3" cols="40"></textarea>
+</td></tr>
 
-<br />
+<tr><td>
+<label for="funcType">Type:</label>
+</td><td>
+<select name="funcType" id="funcType">
+<option value="def">def</option>
+<option value="property">property</option>
+</select>
+</td></tr>
+
+<tr><td colspan="2">
+<input type="checkbox" name="self" id="self" />
+<label for="self">self ?</label>
+</td></tr>
+
+<tr><td colspan="2">
+<label for="params">Liste des paramètres de la fonction (séparés par des retours à la ligne):</label>
+<textarea name="params" id="params" rows="5" cols="40"></textarea>
+</td></tr>
+
+</table>
+
 
 <p>
-<input type="checkbox" name="funcInitialize" id="funcInitialize" />
-<label for="funcInitialize">Créer la fonction évènementielle __init__ représentant le constructeur</label>
-</p>
-
-<br />
-
-<p>
-<input type="checkbox" name="funcTerminate" id="funcTerminate" />
-<label for="funcTerminate">Créer la fonction évènementielle __del__ représentant le destructeur</label>
-</p>
-
-<br />
-
-<label for="globals">Liste des variables globales:</label>
-<textarea name="globals" id="globals" rows="5" cols="40"></textarea>
-
-<br />
-
-<label for="properties">Liste des noms de propriétés:</label>
-<textarea name="properties" id="properties" rows="5" cols="40"></textarea>
-
-<br />
-
-<label for="methods">Liste des noms de méthodes:</label>
-<textarea name="methods" id="methods" rows="5" cols="40"></textarea>
-
-<br />
-
 <INPUT Type="button" Value="Créer" onClick="form1_validate" />
 
 <INPUT Type="button" Value="Annuler" onClick="form1_cancel" />
+</p>
 
 </form>
 
 	</BODY>
 </HTML>
-
-
-
 
 
 
