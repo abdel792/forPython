@@ -104,5 +104,10 @@ Devrait nous afficher l'aide sur la commande install.
 
 01-05-2016
 * Ajout d'un item dans le menu outils permettant d'activer/désactiver l'extension forPython.
+
 02-05-2016
 * Ajout de tous les menus supplémentaires dans le dictionnaire pour faciliter la modification des racourcis-clavier.
+
+03-05-2016
+* Ajout de la vérification du nouveau raccourci-clavier choisi lors du changement de raccourcis-clavier avec CTRL+M.
+

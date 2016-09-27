@@ -90,8 +90,8 @@ if curPythonVersion != "6padPythonVersion" and int(curPythonVersion.split("\\")[
 # Exploration
 shortcuts["navigateLeft"] = sp.getConfig("navigateLeft") if sp.getConfig("navigateLeft") else "ALT+LEFT"
 shortcuts["navigateRight"] = sp.getConfig("navigateRight") if sp.getConfig("navigateRight") else "ALT+RIGHT"
-shortcuts["nextParent"] = sp.getConfig("nextParent") if sp.getConfig("nextParent") else "ALT+DOWN"
-shortcuts["previousParent"] = sp.getConfig("previousParent") if sp.getConfig("previousParent") else "ALT+UP"
+shortcuts["nextBrother"] = sp.getConfig("nextBrother") if sp.getConfig("nextBrother") else "ALT+DOWN"
+shortcuts["previousBrother"] = sp.getConfig("previousBrother") if sp.getConfig("previousBrother") else "ALT+UP"
 # Tags
 shortcuts["removeTags"] = sp.getConfig("removeTags") if sp.getConfig("removeTags") else "F7"
 shortcuts["addTags"] = sp.getConfig("addTags") if sp.getConfig("addTags") else "F10"
@@ -99,7 +99,7 @@ shortcuts["adjustIndent"] = sp.getConfig("adjustIndent") if sp.getConfig("adjust
 # Refresh code
 shortcuts["refreshCode"] = sp.getConfig("refreshCode") if sp.getConfig("refreshCode") else "F12"
 # Accessibility
-shortcuts["vocalSynthesis"] = sp.getConfig("vocalSynthesis") if sp.getConfig("vocalSynthesis") else "CTRL+F2"
+shortcuts["vocalSynthesis"] = sp.getConfig("vocalSynthesis") if sp.getConfig("vocalSynthesis") else "CTRL+F3"
 shortcuts["sayCurrentBlocName"] = sp.getConfig("sayCurrentBlocName") if sp.getConfig("sayCurrentBlocName") else "CTRL+SHIFT+B"
 shortcuts["sayCurrentIndentLevel"] = sp.getConfig("sayCurrentIndentLevel") if sp.getConfig("sayCurrentIndentLevel") else "CTRL+SHIFT+L"
 # Other
@@ -145,8 +145,8 @@ def modifyShortcuts():
 		"advancedSearch":sp.window.menus.edit.advancedSearch.label.replace("&", ""),
 		"navigateLeft":sp.window.menus.view.exploration.navigateLeft.label.replace("&", ""),
 		"navigateRight":sp.window.menus.view.exploration.navigateRight.label.replace("&", ""),
-		"nextParent":sp.window.menus.view.exploration.nextParent.label.replace("&", ""),
-		"previousParent":sp.window.menus.view.exploration.previousParent.label.replace("&", ""),
+		"nextBrother":sp.window.menus.view.exploration.nextBrother.label.replace("&", ""),
+		"previousBrother":sp.window.menus.view.exploration.previousBrother.label.replace("&", ""),
 		"removeTags":sp.window.menus.view.endBlocTags.removeTags.label.replace("&", ""),
 		"addTags":sp.window.menus.view.endBlocTags.addTags.label.replace("&", ""),
 		"adjustIndent":sp.window.menus.view.endBlocTags.adjustIndent.label.replace("&", ""),
@@ -172,11 +172,19 @@ def modifyShortcuts():
 	if element == -1:
 		# On a validé sur annulé ou échappe.
 		return
-	# On affiche un prompt rappelant le choix fait par l'utilisateur.
-	prompt = sp.window.prompt("Saisissez votre raccourci pour la commande %s" % choices[element].split(":")[0], "Nouveau raccourci", text = choices[element].split(":")[1])
-	if not prompt:
-		# On a validé sur annuler.
-		return
+	while 1:
+		# On affiche un prompt invitant l'utilisateur à saisir son nouveau raccourci.
+		prompt = sp.window.prompt("Saisissez votre raccourci pour la commande %s" % choices[element].split(":")[0], "Nouveau raccourci", text = choices[element].split(":")[1])
+		if not prompt:
+			# On a validé sur annuler.
+			return
+		# On vérifie si la clé ne serait pas déjà utilisée.
+		verify = [x for x in list(shortcuts.values()) if x.lower() == prompt.lower()]
+		if len(verify) > 0:
+			sp.window.alert("Le raccourci %s est déjà attribué à la commande %s, veuillez choisir un autre raccourci." % (prompt, functionsList[list(shortcuts.keys())[list(shortcuts.values()).index(prompt)]]))
+			continue
+		else:
+			break
 	# On met à jour le fichier de configuration.
 	sp.setConfig(list(functionsList.keys())[list(functionsList.values()).index(choices[element].split(":")[0])], prompt)
 	# On informe l'utilisateur du changement.
@@ -3619,8 +3627,8 @@ def loadForPythonTools():
 	menuExploration = menuView.add(label = "&Exploration", submenu = True, name = "exploration")
 	menuExploration.add(label = "Aller au bloc &parent (ALT+LEFT)", action = navigateLeft, accelerator = shortcuts["navigateLeft"], name = "navigateLeft")
 	menuExploration.add(label = "Aller au premier bloc &enfant (ALT+RIGHT)", action = navigateRight, accelerator = shortcuts["navigateRight"], name = "navigateRight")
-	menuExploration.add(label = "Aller au bloc frère &suivant (ALT+DOWN)", action = navigateDown, accelerator = shortcuts["nextParent"], name = "nextParent")
-	menuExploration.add(label = "Aller au bloc frère précéde&nt (ALT+UP)", action = navigateUp, accelerator = shortcuts["previousParent"], name = "previousParent")
+	menuExploration.add(label = "Aller au bloc frère &suivant (ALT+DOWN)", action = navigateDown, accelerator = shortcuts["nextBrother"], name = "nextBrother")
+	menuExploration.add(label = "Aller au bloc frère précéde&nt (ALT+UP)", action = navigateUp, accelerator = shortcuts["previousBrother"], name = "previousBrother")
 	
 	# les menus des balises de fin de bloc
 	menuTags = menuView.add(label = "Balises de fin de bloc", submenu = True, name = "endBlocTags")
@@ -3708,7 +3716,6 @@ def unloadForPythonTools():
 	# suppression du timer de vérification de changement de ligne
 	sp.window.clearInterval(idTmrLineMove)
 # end def
-sp.window.addAccelerator("CTRL+SHIFT+F2", unloadForPythonTools)
 # Vérification de l'état d'activation du forPython à l'ouverture de 6pad++.
 if sp.window.menus.tools["forPythonActivation"].checked:
 	loadForPythonTools()
