@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Auteurs : Abdel" />
+  <meta name="author" content="Yannick YOUAL&#201; - Cameroun" />
+  <meta name="author" content="Cyrille" />
+  <meta name="author" content="Contributeurs : QuentinC" />
+  <meta name="author" content="Jean-Fran&#231;ois COLAS" />
+  <meta name="author" content="Tous membres de la progliste (une liste de discussion francophone de programmeurs d&#233;ficients visuels)" />
+  <title>Extension forPython pour 6pad++</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+<div id="header">
+<h1 class="title">Extension forPython pour 6pad++</h1>
+<h2 class="author">Auteurs : <script type="text/javascript">
+<!--
+h='&#102;&#114;&#x65;&#x65;&#46;&#102;&#114;';a='&#64;';n='&#x61;&#98;&#100;&#x65;&#108;&#x6b;&#114;&#x69;&#x6d;&#46;&#98;&#x65;&#110;&#x73;&#x61;&#x69;&#100;';e=n+a+h;
+document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+'&#x41;&#98;&#100;&#x65;&#108;'+'<\/'+'a'+'>');
+// -->
+</script><noscript>&#x41;&#98;&#100;&#x65;&#108;&#32;&#40;&#x61;&#98;&#100;&#x65;&#108;&#x6b;&#114;&#x69;&#x6d;&#46;&#98;&#x65;&#110;&#x73;&#x61;&#x69;&#100;&#32;&#x61;&#116;&#32;&#102;&#114;&#x65;&#x65;&#32;&#100;&#x6f;&#116;&#32;&#102;&#114;&#x29;</noscript></h2>
+<h2 class="author"><script type="text/javascript">
+<!--
+h='&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;';a='&#64;';n='&#x6d;&#x61;&#x69;&#108;&#116;&#x6f;&#108;&#x6f;&#x63;&#x6f;&#50;&#48;&#x31;&#x31;';e=n+a+h;
+document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+'&#x59;&#x61;&#110;&#110;&#x69;&#x63;&#x6b;&#32;&#x59;&#x4f;&#x55;&#x41;&#76;&#xc9;'+'<\/'+'a'+'>');
+// -->
+</script><noscript>&#x59;&#x61;&#110;&#110;&#x69;&#x63;&#x6b;&#32;&#x59;&#x4f;&#x55;&#x41;&#76;&#xc9;&#32;&#40;&#x6d;&#x61;&#x69;&#108;&#116;&#x6f;&#108;&#x6f;&#x63;&#x6f;&#50;&#48;&#x31;&#x31;&#32;&#x61;&#116;&#32;&#x67;&#x6d;&#x61;&#x69;&#108;&#32;&#100;&#x6f;&#116;&#32;&#x63;&#x6f;&#x6d;&#x29;</noscript> - Cameroun</h2>
+<h2 class="author"><script type="text/javascript">
+<!--
+h='&#108;&#x61;&#112;&#x6f;&#x73;&#116;&#x65;&#46;&#110;&#x65;&#116;';a='&#64;';n='&#x63;&#x79;&#114;&#x69;&#108;&#108;&#x65;&#46;&#98;&#x6f;&#x75;&#x67;&#x6f;&#116;&#50;';e=n+a+h;
+document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+'&#x43;&#x79;&#114;&#x69;&#108;&#108;&#x65;'+'<\/'+'a'+'>');
+// -->
+</script><noscript>&#x43;&#x79;&#114;&#x69;&#108;&#108;&#x65;&#32;&#40;&#x63;&#x79;&#114;&#x69;&#108;&#108;&#x65;&#46;&#98;&#x6f;&#x75;&#x67;&#x6f;&#116;&#50;&#32;&#x61;&#116;&#32;&#108;&#x61;&#112;&#x6f;&#x73;&#116;&#x65;&#32;&#100;&#x6f;&#116;&#32;&#110;&#x65;&#116;&#x29;</noscript></h2>
+<h2 class="author">Contributeurs : QuentinC</h2>
+<h2 class="author">Jean-Fran&#231;ois COLAS</h2>
+<h2 class="author">Tous membres de la progliste (une liste de discussion francophone de programmeurs d&#233;ficients visuels)</h2>
+<h3 class="date">Date de r&#233;daction : 05/05/2016</h3>
+</div>
+<div id="TOC">
+<ul>
+<li><a href="#pr&#233;sentation"><span class="toc-section-number">1</span> Pr&#233;sentation</a></li>
+<li><a href="#installation"><span class="toc-section-number">2</span> Installation</a></li>
+</ul>
+</div>
+<h1 id="pr&#233;sentation"><span class="header-section-number">1</span> Pr&#233;sentation</h1>
+<p>forPython est une extension pour l'&#233;diteur de texte 6pad++ cr&#233;&#233; par QuentinC, servant &#224; am&#233;liorer l'accessibilit&#233; du codage en langage &quot;Python&quot;, pour les d&#233;veloppeurs.</p>
+<p>Son objectif est de proposer une interface accessible aux personnes d&#233;ficientes visuelles.</p>
+<p>Cette extension pourra &#234;tre utilis&#233;e avec les lecteurs d'&#233;cran suivants :</p>
+<ol style="list-style-type: decimal">
+<li>JAWS;</li>
+<li>NVDA;</li>
+<li>Window Eye;</li>
+<li>System Access;</li>
+<li>Dolphin Supernova/HAL.</li>
+</ol>
+<p><strong>Attention</strong>, cette extension a &#233;t&#233; cr&#233;&#233;e avec 6pad++, il faudra donc l'utiliser avec cette version de 6pad uniquement.</p>
+<p>Apr&#232;s son activation, forPython devrait vous ajouter certains menus et sous-menus dans votre application portable 6pad++.</p>
+<p>Par d&#233;faut, l'extension n'est pas activ&#233;e, il faudra l'activer en cochant &quot;Activer le forPython&quot; figurant dans le menu outil de 6pad++.</p>
+<p>Mais avant cel&#224;, il faudra tout d'abord l'installer !</p>
+<h1 id="installation"><span class="header-section-number">2</span> Installation</h1>
+<p>Pour installer l'extension forPython pour 6pad++, voici la proc&#233;dure :</p>
+<ul>
+<li>Dans le r&#233;pertoire o&#249; se situe l'ex&#233;cutable de lancement de 6pad++, cr&#233;ez un sous-r&#233;pertoire, que vous appellerez &quot;plugins&quot;;</li>
+<li>Dans ce dossier &quot;plugins&quot;, collez l'archive &quot;forPython.zip&quot;, puis d&#233;compressez la, en s&#233;lectionnant le choix &quot;Extraire ici&quot; ou &quot;Extract here&quot;, si vous utilisez Winrar ou 7zip, Ceci devrait g&#233;n&#233;rer la cr&#233;ation d'un nouveau r&#233;pertoire dans votre dossier &quot;plugins&quot;, nomm&#233; &quot;forPython&quot;;</li>
+<li>Une fois l'archive d&#233;compress&#233;e dans le dossier &quot;plugins&quot;, vous pourrez vous d&#233;barrasser du fichier zip ou le d&#233;placer ailleurs de pr&#233;f&#233;rence;</li>
+<li>Ceci fait, remontez d'un niveau, et plus pr&#233;cis&#233;mment, dans le dossier o&#249; se situe l'ex&#233;cutable de 6pad++, puis ouvrez le fichier nomm&#233; &quot;6pad++.ini&quot;, S'il n'est pas pr&#233;sent, cr&#233;ez le, en choisissant bien l'encodage &quot;UTF-8&quot; ou de pr&#233;f&#233;rence &quot;UTF-8 sans bom&quot;;</li>
+<li>Si le fichier comporte d&#233;j&#224; des instructions, fa&#238;tes &quot;ctrl + fin&quot;, pour vous situer en fin de fichier, puis ajoutez une ligne, dans laquelle vous &#233;crirez ce qui suit, sans espaces : &quot;extension=plugins.forPython/init.py&quot;;</li>
+<li>Fa&#238;tes alors &quot;ctrl + s&quot; pour sauvegarder et &quot;Alt F4&quot;, pour quitter le fichier.</li>
+</ul>
+</body>
+</html>

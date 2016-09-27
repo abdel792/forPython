@@ -19,9 +19,11 @@ import pkgutil
 import sys
 import traceback
 import re
+from re import finditer as finditer
 import os
 import shlex
 import subprocess
+import webbrowser
 import io
 
 alert = sp.window.alert
@@ -40,7 +42,7 @@ pythonVersionsList = ["6padPythonVersion"]
 mode = 0
 curPythonVersion = sp.getConfig("curPythonVersion") if sp.getConfig("curPythonVersion") else "6padPythonVersion"
 okd = oku = po = 0 # Pour les événements onKeyDown, onKeyUp et pageOpened.
-menuForPython = menuView = menuAccessibility = menuModifyAccelerators = menuPythonVersion = menuLineHeadings = menuSelection = menuInsertion = menuDeletion = menuExecution = menuNavigation = menuTags = menuExploration = None # Pour les menus du forPython
+menuForPython = menuView = menuAccessibility = menuModifyAccelerators = menuPythonVersion = menuLineHeadings = menuSelection = menuInsertion = menuDeletion = menuExecution = menuNavigation = menuTags = menuExploration = menuHelp = forPythonHLP = None # Pour les menus du forPython
 idTmrLineMove = 0
 iLastLine = 0
 sLastLine = ""
@@ -107,6 +109,10 @@ shortcuts["sayCurrentIndentLevel"] = sp.getConfig("sayCurrentIndentLevel") if sp
 shortcuts["defineKeyWord"] = sp.getConfig("defineKeyWord") if sp.getConfig("defineKeyWord") else "CTRL+J"
 shortcuts["completion"] = sp.getConfig("completion") if sp.getConfig("completion") else "CTRL+SHIFT+J"
 shortcuts["advancedSearch"] = sp.getConfig("advancedSearch") if sp.getConfig("advancedSearch") else "CTRL+SHIFT+H"
+# for the help of forPython.
+shortcuts["forPythonUsersHelp"] = sp.getConfig("forPythonUsersHelp") if sp.getConfig("forPythonUsersHelp") else "CTRL+F1"
+shortcuts["forPythonChange"] = sp.getConfig("forPythonChange") if sp.getConfig("forPythonChange") else "CTRL+F6"
+shortcuts["forPythonSpecifications"] = sp.getConfig("forPythonSpecifications") if sp.getConfig("forPythonSpecifications") else "CTRL+F7"
 
 def activeForPythonExtension():
 	sp.window.menus.tools["forPythonActivation"].checked = not sp.window.menus.tools["forPythonActivation"].checked
@@ -155,7 +161,10 @@ def modifyShortcuts():
 		"refreshCode":sp.window.menus.view.refreshCode.label.replace("&", ""),
 		"vocalSynthesis":sp.window.menus.accessibility.vocalSynthesis.label.replace("&", ""),
 		"sayCurrentBlocName":sp.window.menus.accessibility.sayCurrentBlocName.label.replace("&", ""),
-		"sayCurrentIndentLevel":sp.window.menus.accessibility.sayCurrentIndentLevel.label.replace("&", "")
+		"sayCurrentIndentLevel":sp.window.menus.accessibility.sayCurrentIndentLevel.label.replace("&", ""),
+		"forPythonUsersHelp":sp.window.menus.help.forPythonHelp.forPythonUsersHelp.label.replace("&", ""),
+		"forPythonChange":sp.window.menus.help.forPythonHelp.forPythonChange.label.replace("&", ""),
+		"forPythonSpecifications":sp.window.menus.help.forPythonHelp.forPythonSpecifications.label.replace("&", "")
 	}
 	if curPythonVersion != "6padPythonVersion":
 		functionsList["enterACommand"] = menuForPython.enterACommand.label.replace("&", "")
@@ -672,7 +681,7 @@ def insertHeaderStatement():
 
 def getCurScriptFolderPath():
 	sPath = inspect.getfile(inspect.currentframe())
-	sPath = os.path.dirname(sPath)
+	sPath = os.path.dirname(sPath) if not os.path.exists(os.path.join(sp.appdir, sPath)) else os.path.dirname(os.path.join(sp.appdir, sPath))
 	return sPath
 
 def manageMenus():
@@ -754,6 +763,15 @@ def make_action(i, f, exFile=None):
 		sp.window.alert("C'est bon, %s a bien été activé !" % (curPythonVersion), "Confirmation")
 		manageMenus()
 	return action
+def runHTAApplication(path):
+	# Permet d'exécuter une application HTML au format HTA avec subprocess.Popen,.
+	# Les 2 lignes de code suivantes permettent d'éviter l'ouverture de la console lors de l'exécution.
+	# La valeur de la variable startupinfo sera alors affectée au paramètre startupinfo de la classe Popen.
+	startupinfo = subprocess.STARTUPINFO()
+	startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+	proc = subprocess.Popen(["mshta.exe", path], stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE, startupinfo = startupinfo)
+
+
 
 def writeToFileAndScreen(cmd, logfile):
 	# Permet d'exécuter le module encours avec subprocess.Popen, puis de diriger la sortie vers la console, ainsi que vers le fichier logfile.log.
@@ -1054,7 +1072,7 @@ def removeStringsFromCode(s):
 	# pattern pour trouver tous les strings et commentaires
 	pt = getStringPattern()
 	# recherche
-	lstString = finditer2list(pt, s)
+	lstString = list(finditer(pt, s))
 	# remplacement des strings et commentaires par des génériques
 	i = 0
 	iStart = 0
@@ -1112,6 +1130,8 @@ def readFile(filePath, _mode = 'r'):
 # end def
 
 def writeFile(filePath, s, _mode = 'w'):
+	# Correction du chemin du fichier.
+	filePath = filePath.replace("\\", "/")
 	# Ecriture dans un fichier
 	fil = open(filePath, _mode)
 	fil.write(s)
@@ -1138,7 +1158,7 @@ def getCurExpression():
 	# renvoi l'expression sous le curseur
 	# ainsi que ses positions de début et de fin
 	s = sp.window.curPage.text
-	if s == "": return "", 0, 0
+	if s == "": expression, iStart, iEnd = "", 0, 0
 	# recueillement de la position du curseur
 	l = sp.window.curPage.position
 	iStart = l
@@ -1216,6 +1236,7 @@ def getCurExpression():
 		i = i - 1 # décrémentation
 	# end while 
 	# if iEnd>iStart: iEnd=iEnd+1
+	text = expression + ", " + str(iStart) + ", " + str(iEnd)
 	return expression, iStart, iEnd
 # end def
 
@@ -1252,10 +1273,11 @@ def getCurClassName(lstBlocsLimits, line):
 	return ""
 # end def
 
-def getCurModuleDir():
+def getCurModulePath():
 	# renvoi le chemin vers le dossier contenant le script courant
-	path = inspect.getfile(inspect.currentframe())
-	return os.path.dirname(path)
+	sPath = inspect.getfile(inspect.currentframe())
+	sPath = os.path.dirname(sPath) if not os.path.exists(os.path.join(sp.appdir, sPath)) else os.path.dirname(os.path.join(sp.appdir, sPath))
+	sp.window.alert(sPath)
 # end def-
 
 def getModuleRef(path):
@@ -1384,7 +1406,7 @@ def getTripleQuotePos(s):
 	polarity = True
 	flagBalance = True
 	# recherche de toutes les lignes qui ont au moins un triple quotes
-	found = finditer2list("([\\r\\n]+)[^\\r\\n]*?('''|\" \"\") [^ \\r \\n] * ", s)
+	found = list(finditer("([\\r\\n]+)[^\\r\\n]*?('''|\" \"\") [^ \\r \\n] * ", s))
 	# parcours
 	i = 0
 	n = len(found)
@@ -1541,19 +1563,19 @@ def getBlocsStructure(lstBlocsLimits=None):
 			s3 = rt.join(lstLines[d + 1:])
 			pt = "^[ \\t]*('''.+?'''|\"\"\.+?\"\"\")"
 			if re.match(pt, s3):
-				s3 = finditer2list(pt, s3) [0].group(1)
+				s3 = list(finditer(pt, s3))[0].group(1)
 				s = s + ("\t" * level.count(iu)) + "\t" + s3 + "\n"
 			# end if			
 			# on circonscrit le texte qui contient la classe
 			classText = rt.join(lstLines[d: f])
 			# on va rechercher tous les attributs de la classe dans son texte préalablement circonscrit
 			lst = []
-			lstAttributs = finditer2list("^" + level + iu + "([_]*[\\w][\\w\\d_]*)[ \\t]*\\=", classText, re.M)
+			lstAttributs = list(finditer("^" + level + iu + "([_]*[\\w][\\w\\d_]*)[ \\t]*\\=", classText, re.M))
 			for e in lstAttributs:
 				lst.append(e.group(1))
 			# end for			
 			# on recherche également les attribut implicites à la classe déclarés dans les def
-			lstAttributs = finditer2list("^[ \\t]+self\\.([\\w\\d_]+)[ \\t]*\\=", classText, re.M)
+			lstAttributs = list(finditer("^[ \\t]+self\\.([\\w\\d_]+)[ \\t]*\\=", classText, re.M))
 			for e in lstAttributs:
 				lst.append(e.group(1))
 			# end for			
@@ -1567,7 +1589,7 @@ def getBlocsStructure(lstBlocsLimits=None):
 			pt = "^[ \\t]*(def[ \\t]+[\\w\\d_]+[ \\t]*\\(.*?\\)[ \\t]*\\:)"
 			if re.match(pt, rt.join(lstLines[d:]), re.L):
 				# on extrait la ligne
-				s2 = finditer2list(pt, rt.join(lstLines[d:]), re.L) [0].group(1)
+				s2 = list(finditer(pt, rt.join(lstLines[d:]), re.L))[0].group(1)
 				# retrait de caractères indésirables de la chaîne
 				s2 = re.sub("(\\\\[ \\t]*)*[\\r\\n]+", "", s2)
 				s = s + ("\t" * level.count(iu)) + s2 + "\n"
@@ -1578,7 +1600,7 @@ def getBlocsStructure(lstBlocsLimits=None):
 			s3 = rt.join(lstLines[d: f])
 			pt = "^.+?\\)[ \\t]*\\:[ \\t]*(\\#[^\\r\\n]*)*[\\r\\n]+[ \\t]*('''.+?'''|\"\"\".+?\"\"\")"
 			if re.match(pt, s3):
-				s3 = finditer2list(pt, s3) [0].group(2)
+				s3 = list(finditer(pt, s3))[0].group(2)
 				s = s + ("\t" * level.count(iu)) + "\t" + s3 + "\n"
 			# end if			
 			# pour toute fonction, on ajoute un return
@@ -1629,9 +1651,9 @@ def getBlocsLimits(s):
 		# si ligne d'influence de l'indentation
 		pt = "^([ \\t]*)(class|def)[ \\t]+([a-zA-Z\\d_]+)"
 		if re.match(pt, curLine):
-			curLevel = finditer2list(pt, curLine, re.I)[0].group(1)
-			curKey = finditer2list(pt, curLine, re.I)[0].group(2)
-			curName = finditer2list(pt, curLine, re.I)[0].group(3)
+			curLevel = list(finditer(pt, curLine, re.I))[0].group(1)
+			curKey = list(finditer(pt, curLine, re.I))[0].group(2)
+			curName = list(finditer(pt, curLine, re.I))[0].group(3)
 			d = i
 			# on recherche la fin de ce bloc
 			for j in range(i+1, n):
@@ -1659,7 +1681,7 @@ def getBlocsLimits(s):
 					# end if
 				# end if
 				# est-ce la ligne de fin ?
-				level = finditer2list("^[ \\t]*", line)[0].group(0)
+				level = list(finditer("^[ \\t]*", line))[0].group(0)
 				# si le niveau est inférieur
 				if level <= curLevel:
 					f = j-1
@@ -1715,7 +1737,7 @@ def getBlocsLimits(s):
 			if isDirectLine(e) == True: # cas improbable, mais à prendre en compte
 				continue
 			# end if
-			found = finditer2list(pt1, e)
+			found = list(finditer(pt1, e))
 			curIndent = found[0].group(1)
 			curLevel = len(curIndent)
 			curKey = found[0].group(2)
@@ -1882,7 +1904,7 @@ def addTags(s = ""):
 		pt = "^([ \\t]*)(" + pt1 + ")[^a-zA-Z\\d_]"
 		if re.match(pt, e, re.I):
 			# recueillement de certaines infos sur cette ligne
-			found = finditer2list(pt, e, re.I)
+			found = list(finditer(pt, e, re.I))
 			curIndent = found[0].group(1)
 			curLevel = curIndent.count(iu)
 			curKey = found[0].group(2)
@@ -1893,7 +1915,7 @@ def addTags(s = ""):
 				pt = "^([ \\t]*)(" + pt2 + ")[^a-zA-Z\\d_]"
 				for k in range(i + 1, n):
 					if re.match(pt, lines[k], re.I):
-						found2 = finditer2list(pt, lines[k], re.I)
+						found2 = list(finditer(pt, lines[k], re.I))
 						indent = found2[0].group(1)
 						level = indent.count(iu)
 						if curLevel != level: break
@@ -2020,7 +2042,7 @@ def adjustIndentsByTags(s, selection = False, iStart = 0, iEnd = 0):
 			flagRebounce = False
 			indent = iu * level
 			lines[i] = indent + lines[i]
-			key = finditer2list("^[ \\t]*#[ \\t]*end[ \\t]*(" + pt1 + ")", sLine) [0].group(1)
+			key = list(finditer("^[ \\t]*#[ \\t]*end[ \\t]*(" + pt1 + ")", sLine))[0].group(1)
 			lst.append(key)
 			lst2.append(i)
 			level = level + 1
@@ -2031,7 +2053,7 @@ def adjustIndentsByTags(s, selection = False, iStart = 0, iEnd = 0):
 			if flag == False: # la ligne n'exécute rien après le deux points
 				flagRebounce = False
 				# on vérifie si correspond à la fermeture
-				key1 = finditer2list("^(" + pt1 + ")[^a-zA-Z_\\d]", sLine) [0].group(1)
+				key1 = list(finditer("^(" + pt1 + ")[^a-zA-Z_\\d]", sLine))[0].group(1)
 				key2 = ""
 				if len(lst) > 0: key2 = lst[len(lst) - 1]
 				if key1.lower() == key2.lower():
@@ -2049,7 +2071,7 @@ def adjustIndentsByTags(s, selection = False, iStart = 0, iEnd = 0):
 				if flagRebounce == True:
 					flagRebounce = False
 					# vérification que les mots clés correspondent
-					key1 = finditer2list("^(" + pt1 + ")[^a-zA-Z_\\d]", sLine) [0].group(1)
+					key1 = list(finditer("^(" + pt1 + ")[^a-zA-Z_\\d]", sLine))[0].group(1)
 					key2 = ""
 					if len(lst) > 0: key2 = lst[len(lst) - 1]
 					if key1.lower() == key2.lower():
@@ -2153,7 +2175,7 @@ def adjustIndentsByTags2(s, selection = False, iStart=0, iEnd=0):
 			elif re.match("^[#][ \\t]*end[ \\t]*(" + pt1 + ")", e, re.I):
 				# xxx c'est une balise de fin de block
 				# vérification que la clée correspond
-				key = finditer2list("[#][ \\t]*end[ \\t]*(" + pt1 + ")", e, re.I) [0].group(1)
+				key = list(finditer("[#][ \\t]*end[ \\t]*(" + pt1 + ")", e, re.I))[0].group(1)
 				if key == lstKey[len(lstKey) - 1]:
 					level = level - 1
 					indent = iu * level
@@ -2214,7 +2236,7 @@ def refreshCode(s):
 	# concaténation
 	pt = "(" + "|".join(lstPt) + ")"
 	# recherche
-	lstString = finditer2list(pt, s, 0)
+	lstString = list(finditer(pt, s, 0))
 	# remplacement des strings et commentaires par des génériques
 	i = 0
 	iStart = 0
@@ -2439,17 +2461,17 @@ def curPosCompletion():
 				# selon les imports détectés
 				for e in lstImports:
 					if re.match(".+?[ \\t]+as[ \\t]+([a-zA-Z\\d_]+)", e, re.I): # from x import x as x
-						s2 = finditer2list(".+?[ \\t]+as[ \\t]+([a-zA-Z\\d_]+)", e, re.I)[0].group(1)
+						s2 = list(finditer(".+?[ \\t]+as[ \\t]+([a-zA-Z\\d_]+)", e, re.I))[0].group(1)
 						lst.append(s2)
 					# end if
 					if re.match("^[ \\t]*from[ \\t]+([^ \\t]+)[ \\t]+import[ \\t]+\\*", e, re.I): # from x import *
-						s2 = finditer2list("^[ \\t]*from[ \\t]+([^ \\t]+)[ \\t]+import[ \\t]+\\*", e) [0].group(1)
+						s2 = list(finditer("^[ \\t]*from[ \\t]+([^ \\t]+)[ \\t]+import[ \\t]+\\*", e))[0].group(1)
 						try:
 							mo = __import__(s2)
 							lst = lst + dir(mo)
 						except: pass
 					elif re.match("^[ \\t]*from[ \\t]+([^ \\t]+)[ \\t]+import[ \\t]+([a-zA-Z\\d_\\.]+)", e, re.I): # from x import x
-						s2 = finditer2list("^[ \\t]*from[ \\t]+([^ \\t]+)[ \\t]+import[ \\t]+\([a-zA-Z\\d_\\.]+)", e) [0].group(2)
+						s2 = list(finditer("^[ \\t]*from[ \\t]+([^ \\t]+)[ \\t]+import[ \\t]+\([a-zA-Z\\d_\\.]+)", e))[0].group(2)
 						if s2.find(".") < 0: lst.append(s2)
 					# end if
 				# end for
@@ -2644,13 +2666,13 @@ def extractVarsFromCode(s):
 	lst = []
 	# pour les déclarations uniques sur une ligne
 	pt = "[\\r\\n]+[ \\t]*([a-zA-Z][a-zA-Z\\d_]*)[ \\t]*=[^=]"
-	found = finditer2list(pt, s, re.I)
+	found = list(finditer(pt, s, re.I))
 	for e in found:
 		lst.append(e.group(1))
 	# end for
 	# pour les déclarations multiples sur une ligne
 	pt = "([\\r\\n]+[ \\t]*|[ \\t]*,[ \\t]*)([a-zA-Z][a-zA-Z\\d_]*)([ \\t]*=|[ \\t]*,)"
-	found = finditer2list(pt, s, re.I)
+	found = list(finditer(pt, s, re.I))
 	for e in found:
 		lst.append(e.group(2))
 	# end for
@@ -2663,7 +2685,7 @@ def extractClassDefFromCode(s):
 	# extrait les déclarations de classes et fonctions du texte
 	lst = []
 	pt = "[\\r\\n]+[ \\t]*(class|def)[ \\t]+([a-zA-Z\\d_]+)"
-	found = finditer2list(pt, s, re.I)
+	found = list(finditer(pt, s, re.I))
 	for e in found: lst.append(e.group(2))
 	return lst
 # end def
@@ -2761,8 +2783,8 @@ def createNewClass():
 	s = ""
 	separator = ",,,"
 	# les chemins vers les fichiers à utiliser
-	pathIni = getCurModuleDir() + "\\com.ini"
-	pathFrm = getCurModuleDir() + "\\frmCreateClass.hta"
+	pathIni = os.path.join(getCurScriptFolderPath(), "com.ini")
+	pathFrm = os.path.join(getCurScriptFolderPath(), "frmCreateClass.hta")
 	# infos d'indentation et de retours à la ligne
 	rt = getCurReturnUnit()
 	iu = getCurIndentUnit()
@@ -2783,17 +2805,17 @@ def createNewClass():
 	# initialisation du fichier intermédiaire
 	writeFile(pathIni, "")
 	# exécution de la fenêtre HTA
-	os.system(pathFrm)
+	runHTAApplication(pathFrm)
 	# traitement du résultat
 	s = readFile(pathIni)
 	if s == "": return
-	className = finditer2list("className=([^\\r\\n]*)", s, re.I)[0].group(1)
-	classDescription = finditer2list("description=([^\\r\\n]*)", s, re.I)[0].group(1)
-	funcInitialize = finditer2list("funcInitialize=([^\\r\\n]*)", s, re.I)[0].group(1)
-	funcTerminate = finditer2list("funcTerminate=([^\\r\\n]*)", s, re.I)[0].group(1)
-	classGlobals = finditer2list("globals=([^\\r\\n]*)", s, re.I)[0].group(1)
-	classProperties = finditer2list("properties=([^\\r\\n]*)", s, re.I)[0].group(1)
-	classMethods = finditer2list("methods=([^\\r\\n]*)", s, re.I)[0].group(1)
+	className = list(finditer("className=([^\\r\\n]*)", s, re.I))[0].group(1)
+	classDescription = list(finditer("description=([^\\r\\n]*)", s, re.I))[0].group(1)
+	funcInitialize = list(finditer2list("funcInitialize=([^\\r\\n]*)", s, re.I))[0].group(1)
+	funcTerminate = list(finditer("funcTerminate=([^\\r\\n]*)", s, re.I))[0].group(1)
+	classGlobals = list(finditer("globals=([^\\r\\n]*)", s, re.I))[0].group(1)
+	classProperties = list(finditer2list("properties=([^\\r\\n]*)", s, re.I))[0].group(1)
+	classMethods = list(finditer("methods=([^\\r\\n]*)", s, re.I))[0].group(1)
 	# génération progressive du texte
 	s = ""
 	# déclaration de la classe
@@ -2861,8 +2883,8 @@ def createNewFunction():
 	s = ""
 	separator = ",,,"
 	# les chemins vers les fichiers à utiliser
-	pathIni = getCurModuleDir() + "\\com.ini"
-	pathFrm = getCurModuleDir() + "\\frmCreateFunction.hta"
+	pathIni = os.path.join(getCurScriptFolderPath(), "com.ini")
+	pathFrm = os.path.join(getCurScriptFolderPath(), "frmCreateFunction.hta")
 	# infos d'indentation et de retours à la ligne
 	rt = getCurReturnUnit()
 	iu = getCurIndentUnit()
@@ -2883,16 +2905,16 @@ def createNewFunction():
 	# initialisation du fichier intermédiaire
 	writeFile(pathIni, "")
 	# exécution de la fenêtre HTA
-	os.system(pathFrm)
+	runHTAApplication(pathFrm)
 	# traitement du résultat
 	s = readFile(pathIni)
 	if s == "": return
 	# recueillement des valeurs
-	funcName = finditer2list("funcName=([^\\r\\n]*)", s, re.I)[0].group(1)
-	funcType = finditer2list("funcType=([^\\r\\n]*)", s, re.I) [0].group(1)
-	funcSelf = finditer2list("self=([^\\r\\n]*)", s, re.I)[0].group(1)
-	funcParams = finditer2list("params=([^\\r\\n]*)", s, re.I)[0].group(1)
-	funcDescription = finditer2list("description=([^\\r\\n]*)", s, re.I)[0].group(1)
+	funcName = list(finditer("funcName=([^\\r\\n]*)", s, re.I))[0].group(1)
+	funcType = list(finditer("funcType=([^\\r\\n]*)", s, re.I))[0].group(1)
+	funcSelf = list(finditer("self=([^\\r\\n]*)", s, re.I))[0].group(1)
+	funcParams = list(finditer("params=([^\\r\\n]*)", s, re.I))[0].group(1)
+	funcDescription = list(finditer("description=([^\\r\\n]*)", s, re.I))[0].group(1)
 	# génération progressive du code de la fonction
 	s = ""
 	# préparations
@@ -3083,7 +3105,7 @@ def checkLine(page, line):
 		return True
 	# end if
 	# Vérification qu'on ne doit pas mélanger les types d'indentation en début de ligne
-	lst = finditer2list("^[ \\t]+", s)
+	lst = list(finditer("^[ \\t]+", s))
 	if len(lst) > 0:
 		indent = lst[0].group(0)
 		if indent.count(" ") > 0 and indent.count("\t") > 0:
@@ -3242,54 +3264,61 @@ def goToEndOfElement():
 def searchAndReplaceAdvanced():
 	# rechercher et remplacer alternatif
 	s = ""
-	separator = ",,,"
+	separator = "|"
 	# les chemins vers les fichiers à utiliser
-	pathIni = getCurModuleDir() + "\\com.ini"
-	pathFrm = getCurModuleDir() + "\\frmReplace.hta"
+	pathIni = os.path.join(getCurScriptFolderPath(), "com.ini")
+	pathFrm = os.path.join(getCurScriptFolderPath(), "frmReplace.hta")
 	# infos d'indentation et de retours à la ligne
 	rt = getCurReturnUnit()
 	iu = getCurIndentUnit()
 	# on retrouve les paramètres enregistrés
-	lst = sp.getConfig("lastReplacementParams", (separator * 11)).split(separator)
+	lst = sp.getConfig("lastReplacementParams", str(("0" + separator) * 11)[:-1]).split(separator)
 	# détermination d'une éventuelle expression sous le curseur
 	expression, d, f = getCurExpression()
 	# constitution du texte intermédiaire
 	try:
-		s = ""
 		# le texte à remplacer
-		if lst[2] == "1" and expression != "": s = s + "textToReplace=" + expression + "\r\n"
-		else: s = s + "textToReplace=" + lst[0] + "\r\n"
+		if lst[2] == "1" and expression != "":
+			s = s + "textToReplace=" + expression + "\r\n"
+		else:
+			s = s + "textToReplace=" + lst[0] + "\r\n"
 		# le texte de remplacement
 		s = s + "replaceBy=" + lst[1] + "\r\n"
 		# le type de recherche
-		if lst[2] != "": s = s + "searchType=" + lst[2] + "\r\n"
+		s = s + "searchType=" + lst[2] + "\r\n"
 		# la direction de la recherche
-		if lst[3] != "": s = s + "searchDirection=" + lst[3] + "\r\n"
+		s = s + "searchDirection=" + lst[3] + "\r\n"
 		# la zone de recherche
-		if lst[4] != "": s = s + "searchZone=" + lst[4] + "\r\n"
+		s = s + "searchZone=" + lst[4] + "\r\n"
 		# le respect de la cass
-		if lst[5] != "": s = s + "respectCase=" + lst[5] + "\r\n"
+		s = s + "respectCase=" + lst[5] + "\r\n"
 		# mot seul uniquement
-		if lst[6] != "": s = s + "allWordOnly=" + lst[6] + "\r\n"
-	except: pass
+		s = s + "allWordOnly=" + lst[6] + "\r\n"
+	except:
+		pass
 	# écriture des paramètres dans le fichier intermédiaire
 	writeFile(pathIni, s)
-	if expression.count(".") > 0: expression = expression.split(".")[- 1]
+	if expression.count(".") > 0:
+		expression = expression.split(".")[-1]
 	# exécution de la fenêtre HTA
-	os.system(pathFrm)
+	runHTAApplication(pathFrm)
 	# traitement du résultat
 	s = readFile(pathIni)
-	if s == "": return
-	# recueillement des valeurs
-	textToReplace = finditer2list("textToReplace=([^\\r\\n]*)", s, re.I)[0].group(1)
-	textToReplace2 = textToReplace
-	replaceBy = finditer2list("replaceBy=([^\\r\\n]*)", s, re.I)[0].group(1)
-	replaceBy2 = replaceBy
-	searchType = finditer2list("searchType=([^\\r\\n]*)", s, re.I)[0].group(1)
-	searchDirection = finditer2list("searchDirection=([^\\r\\n]*)", s, re.I)[0].group(1)
-	searchZone = finditer2list("searchZone=([^\\r\\n]*)", s, re.I)[0].group(1)
-	respectCase = finditer2list("respectCase=([^\\r\\n]*)", s, re.I)[0].group(1)
-	allWordOnly = finditer2list("allWordOnly=([^\\r\\n]*)", s, re.I)[0].group(1)
+	if s == "":
+		return
+	try:
+		# recueillement des valeurs
+		textToReplace = list(finditer("textToReplace=(.*)$", s, re.I|re.M))[0].group(1)
+		textToReplace2 = textToReplace
+		replaceBy = list(finditer("replaceBy=(.*)$", s, re.I|re.M))[0].group(1)
+		replaceBy2 = replaceBy
+		searchType = list(finditer("searchType=(.*)$", s, re.I|re.M))[0].group(1)
+		searchDirection = list(finditer("searchDirection=(.*)$", s, re.I|re.M))[0].group(1)
+		searchZone = list(finditer("searchZone=(.*)$", s, re.I|re.M))[0].group(1)
+		respectCase = list(finditer("respectCase=(.*)$", s, re.I|re.M))[0].group(1)
+		allWordOnly = list(finditer("allWordOnly=(.*)$", s, re.I|re.M))[0].group(1)
+	except:
+		pass
 	# traitement des paramètres renvoyés
 	#  si pas expression régulière
 	if searchType == "1":
@@ -3409,13 +3438,13 @@ def searchDeclarations(code, key):
 	pt = pt + "from[ \\t]+[^ \\t\\r\\n]+[ \\t]+import.*?[^\\w\\d_]" + key + "[^\\w\\d_]?[^\\r\\n]*|"
 	pt = pt + "from[ \\t]+[^ \\t]+import[ \\t]+\*|"
 	pt = pt + "import[ \\t]+(" + key + "|.*?[^\\w\\d_]" + key + ")[^\\w\\d_]?[^\\r\\n]*)"
-	found = finditer2list(pt, code, re.I)
+	found = list(finditer(pt, code, re.I))
 	# parcours
 	for e in found:
 		# si ligne d'assignation avec un =
 		pt2 = "^([\\r\\n]+|:)[ \\t]*" + key + "[ \\t]*=([a-zA-Z_][a-zA-Z\\d_]*)"
 		if re.match(pt2, e.group(0), re.I):
-			key2 = finditer2list(pt2, e.group(0), re.I) [0].group(1)
+			key2 = list(finditer(pt2, e.group(0), re.I))[0].group(1)
 			try: lst.append(searchDeclarations(code[0: e.start(0)], key2))
 			except: pass
 		# end if
@@ -3574,10 +3603,18 @@ def navigateLeft():
 	# end for
 	sp.window.messageBeep(0)
 # end def
+def forPythonUsersHelp():
+	webbrowser.open(os.path.join(getCurScriptFolderPath(), "doc", "readme.html"))
+
+def forPythonChange():
+	webbrowser.open(os.path.join(getCurScriptFolderPath(), "doc", "change.html"))
+
+def forPythonSpecifications():
+	webbrowser.open(os.path.join(getCurScriptFolderPath(), "doc", "cahier-des-charges.html"))
 
 def loadForPythonTools():
 	# Chargement des menus, évènements et raccourcis propres à l'extension forPython
-	global menuForPython, menuView, menuAccessibility, menuModifyAccelerators, menuPythonVersion, menuLineHeadings, menuSelection, menuInsertion, menuDeletion, menuExecution, menuNavigation, menuTags, menuExploration
+	global menuForPython, menuView, menuAccessibility, menuModifyAccelerators, menuPythonVersion, menuLineHeadings, menuSelection, menuInsertion, menuDeletion, menuExecution, menuNavigation, menuTags, menuExploration, menuHelp, forPythonHLP
 	global idTmrLineMove, flagVocalSynthesis
 	# Vérification de la pré-existence du menu forPython.
 	# il nous sert de repère pour savoir si les aménagement on déja été chargés ou pas.
@@ -3645,6 +3682,12 @@ def loadForPythonTools():
 	# python versions.
 	menuPythonVersion = menuTools.add(label = "&Versions de Python installées", submenu = True, name = "pythonVersion")
 	menuPythonVersion.add(label = "6&pad++ Python version", action = make_action(0, "6padPythonVersion"), name = "6padPythonVersion")
+	# Ajout du menu d'aide pour l'extension forPython.
+	menuHelp = sp.window.menus.help
+	forPythonHLP = menuHelp.add(label = "Aide pour l'extension forPython", submenu = True, name = "forPythonHelp")
+	forPythonHLP.add(label = "Aide pour les &utilisateurs", action = forPythonUsersHelp, accelerator = shortcuts["forPythonUsersHelp"], name = "forPythonUsersHelp")
+	forPythonHLP.add(label = "Historique des &changements", action = forPythonChange, accelerator = shortcuts["forPythonChange"], name = "forPythonChange")
+	forPythonHLP.add(label = "Cah&ier des charges", action = forPythonSpecifications, accelerator = shortcuts["forPythonSpecifications"], name = "forPythonSpecifications")
 	# for managing additional menus.
 	manageMenus()
 	# Modify shortcuts
@@ -3693,10 +3736,14 @@ def unloadForPythonTools():
 	# Vérification et suppression du menu forPython.
 	if sp.window.menus["forPython"] != None:
 		sp.window.menus.remove('forPython')
-	# Vérification de l'item de recherche avancée dans le menu édition:
+	# Vérification et suppression de l'item de recherche avancée dans le menu édition:
 	menuEdit = sp.window.menus.edit
 	if menuEdit["advancedSearch"] != None:
 		menuEdit.remove("advancedSearch")
+	# Vérification et suppression de l'item d'aide pour l'extension forPython dans le menu aide.
+	menuHelp = sp.window.menus.help
+	if menuHelp["forPythonHelp"] != None:
+		menuHelp.remove("forPythonHelp")
 	# vérification et suppression du menu Affichage.
 	if sp.window.menus["view"] != None:
 		sp.window.menus.remove("view")

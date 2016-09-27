@@ -1,0 +1,32 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>Cahier des charges pour l'extension forPython</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+<div id="header">
+<h1 class="title">Cahier des charges pour l'extension forPython</h1>
+</div>
+<ol style="list-style-type: decimal">
+<li>Corrigez les bugs des bo&#238;tes de dialogues permettant de cr&#233;er une nouvelle classe, de cr&#233;er une nouvelle fonction et de faire une recherche avanc&#233;e;</li>
+<li>Dans le menu outils, pr&#232;s ou &#224; l'int&#233;rieur des menus de recensement des versions de python install&#233;es, cr&#233;er le menu &quot;Localiser manuellement une version de python&quot; qui, ouvrira une bo&#238;te de dialogue ouvrir pour aller d&#233;signer l'ex&#233;cutable d'une version de python qui ne serait pas trouv&#233;e par la boucle de parcours des dossiers de l'ordinateur;</li>
+<li>Dans le menu outils, cr&#233;er le menu &#224; cocher &quot;V&#233;rification automatique de la syntaxe des lignes modifi&#233;es&quot;, qui activera ou d&#233;sactivera la v&#233;rification automatique de la syntaxe des lignes modifi&#233;es;</li>
+<li>Dans le menu outils, cr&#233;er le menu &#224; cocher &quot;Compl&#233;tion de code- ajouter automatiquement les balises de fin de bloc&quot;, qui lors de l'insertion de code, ajoutera selon cette pr&#233;f&#233;rence des balises end if, end def, end class, etc;;</li>
+<li>Dans le menu &quot;accessibilit&#233;&quot;, cr&#233;er le menu &#224; cocher &quot;Lecture du niveau d'indentation seulement si changement&quot;, dont le caract&#232;re coch&#233; n'autorisera la lecture du niveau d'indentation que lorsque le focus se d&#233;placera sur une ligne o&#249; ce niveau est diff&#233;rent de celui de la ligne ant&#233;rieure;</li>
+<li>Lors du rep&#233;rage des versions de python install&#233;es, faire &#233;galement le recensement des fichiers chm d'aide pr&#233;sent dans chaque dossier de python et les afficher comme &#233;l&#233;ment d'un sous-menu au menu aide;</li>
+<li>Rendre visible les menus &quot;Compiler avec py2exe&quot; et &quot;Ex&#233;cuter une commande pip&quot;, et simplement les griser en cas d'absence des biblioth&#232;ques n&#233;cessaires;</li>
+<li>Dans le menu &quot;fichier&quot;, cr&#233;er le menu &quot;Enregistrer tout&quot; juste apr&#232;s le menu &quot;Enregistrer sous&quot;, qui enregistrera tous les onglets &#224; partir d'une seule commande;</li>
+<li>Dans le menu &quot;fichier&quot;, cr&#233;er le menu &quot;Fermer tout sauf l'onglet courant&quot;;</li>
+<li>Dans le menu &quot;affichage&quot;, cr&#233;er le menu &quot;Propri&#233;t&#233;s...&quot; qui ouvrira un dialogue des propri&#233;t&#233;s du document courant; Les informations affich&#233;es seront pour le document courant: le type d'encodage, le nombre d'imports, le nombre de classes, le nombre de propri&#233;t&#233;s, le nombre de m&#233;thodes, le nombre de fonctions, le nombre de lignes, le nombre de caract&#232;res, le pourcentage d'&#233;volution dans le document.</li>
+<li>Intersepter et refaire le collage de texte pour une meilleure prise en compte du collage de code indent&#233;s provenant d'ailleurs;</li>
+<li>Faire l'interdiction du caract&#232;re tabulation si on n'est pas en d&#233;but de ligne;</li>
+<li>Faire l'interdiction d'un niveau d'indentation sup&#233;rieur &#224; plus d'une unit&#233; de celui de la ligne pr&#233;c&#233;dente; &#201;mettre un beep dans ce cas.</li>
+<li>Dans le menu python/s&#233;lection, Faire des commandes pour: Etendre la s&#233;lection au bloc parent, R&#233;duire la s&#233;lection au premier bloc enfant;.</li>
+</ol>
+</body>
+</html>

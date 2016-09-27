@@ -1,0 +1,41 @@
+Chers amis auteurs et contributeurs pour l'extension forPython, ce petit guide est pour vous afin que vous sachiez comment apporter des changements aux fichiers "change.md", "cahier-des-charges.md" et "readme.md".
+
+Comme vous l'avez compris, ces fichiers sont rédigés en syntaxe markdown.
+
+Pour la désignation d'un nouveau changement, dans le fichier change.md, il faudra d'abord l'ouvrir dans le bloc-note ou notepad++.
+
+Ceci fait, se positionner dans la dernière ligne du fichier.
+
+Pour préciser une date, il faudra d'abord la faire précéder du symbole diez, que l'on obtient avec Alt GR + guillemet.
+
+Il n'est pas obligatoire mais préférable de séparer ce symbole diez du texte par une espace et d'en ajouter un en fin de ligne.
+
+Après la spécification de la date, ajoutez une ligne vide et introduisez votre liste à puces non-ordonnée par un astérisque
+
+Il faudra que la liste à puces soit séparée de la date par une ligne vide.
+
+Après cet astérisque, mettez 2 espaces et citez votre premier élément de liste.
+
+En principe, une seule espace devrait suffir mais étant donné que toutes les autres listes de ce document ont été réalisée ainsi, il est préférable de mettre 2 espaces.
+
+Si l'élément de liste requiert un  nouveau paragraphe compris dans l'item, faites le précéder tout simplement de 2 espaces sans mentionner l'astérisque.
+
+Noubliez pas de clôturer votre liste par une ligne vide, avant d'entamer la date suivante, etc...
+
+Si vous souhaitez apporter des modifications au fichier d'aide ou au cahier des charges, voici la procédure :
+
+Pour le cahier des charges, ouvrez le fichier intitulé "cahier-des-charges.md" avec le bloc-note ou Notepad++.
+
+Ceci fait, vous remarquerez que chaque élément composant la liste à puces numérotée est précédé d'un symbole diez, suivi d'un point puis de 2 espaces.
+
+Eh bien pour ajouter des éléments, il faudra tout simplement les faire précéder de ce symbole diez, suivi d'un point et de 2 espaces avant de rédiger le contenu de l'item.
+
+Veillez à ce que chaque élément de liste ne soit pas séparé du précédent par une ligne vide.
+
+Pour la liste numérotée, le principe est le même que la liste à puce non-ordonnée, pour ce qui est de l'ajout de paragraphes à l'intérieur d'un élément de liste.
+
+Pour le fichier "readme.md", chaque nouveau chapitre devra comporter de part et d'autre un symbole diez séparé du texte par une espace.
+
+Chaque paragraphe pourra être rédigé dès le début de ligne, sans mention particulière, sauf qu'il devra être séparé du paragraphe précédent par une ligne vide.
+
+Voilà, merci à vous, chers contributeurs.
