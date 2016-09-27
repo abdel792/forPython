@@ -538,7 +538,14 @@ def make_action(i, f, exFile=None):
 				menuPythonVersion[x].checked = True
 		sp.setConfig("curPythonVersion", curPythonVersion)
 		sp.window.alert("C'est bon, %s a bien été activé !" % (curPythonVersion), "Confirmation")
+		# On vérifie la présence du sous-menu permettant de mettre à jour pip.
+		if curPythonVersion != "6padPythonVersion":
+			if not menuForPython[-1].name == "updatePip":
+				menuForPython.add(label = "Me&ttre à jour pip", action = updatePip, name = "updatePip")
+		else:
+			menuForPython.remove(name = "updatePip")
 	return action
+
 def writeToFileAndScreen(cmd, logfile):
 	# Permet d'exécuter le module encours avec subprocess.Popen, puis de diriger la sortie vers la console, ainsi que vers le fichier logfile.log.
 	# Cette fonction ne s'applique que lorsque le curPythonVersion est différent du Python embarqué avec 6pad++.
@@ -568,7 +575,7 @@ def writeToFileAndScreen(cmd, logfile):
 def goToLineError(errorMessage):
 	# Permet de retrouver la ligne d'erreur et de l'atteindre.
 	# On initialise les erreurs à rechercher.
-	f = l = ""
+	f = l = f1 = l1 = ""
 	# On crée une regexp qui va capturer 2 partie du messages d'erreur.
 	# 1. La partie concernant Le fichier comportant l'erreur et son chemin.
 	# 2. La ligne où se trouve l'erreur, qui nous aidera pour l'atteindre.
@@ -589,29 +596,52 @@ def goToLineError(errorMessage):
 			f, l = item1, item2
 			# On stoppe l'itération pour ne récupérer que la première erreur à partir de la fin.
 			break
+		else:
+			f1, l1 = find[0]
 	# On vérifie si f est bien le module actuellement ouvert.
-	if f and l:
-		if f != page.file:
-			# Le module actuellement ouvert n'est pas celui comportant l'erreur.
-			# On l'ouvre et le définit comme étant le module courant.
-			sp.window.open(f)
-			# On réaffecte page à la page courante.
-			page = sp.window.curPage
-	else:
-		sp.window.alert("Le module comportant l'erreur est %s, à la ligne %s, c'est un module faisant partie du package de Python, impossible donc de l'ouvrir" % (f, l), "Impossible d'ouvrir le module comportant l'erreur")
+	if f and l and f != page.file:
+		# Le module actuellement ouvert n'est pas celui comportant l'erreur.
+		# On l'ouvre et le définit comme étant le module courant.
+		sp.window.open(f)
+		# On réaffecte page à la page courante.
+		page = sp.window.curPage
+	elif f1 and l1:
+		# Le module comportant l'erreur n'est pas disponible.
+		sp.window.alert("Le module comportant l'erreur est %s, à la ligne %s, c'est un module qu'il nous est impossible d'ouvrir" % (f1, l1), "Impossible d'ouvrir le module comportant l'erreur")
 		return
 	# On pointe sur la ligne concernée, dans le fichier comportant l'erreur.
 	page.curLine = int(l) - 1
 	# On retourne un tuple, composé du chemin du fichier concerné, ainsi que du numéro de ligne de l'erreur.
 	return (f, l)
 
-def executeModule(filepath):
+def execute6padModule(filepath):
 	globals={
 		"__file__":filepath,
 		"__name__":"__main__"
 	}
 	with open(filepath, "r") as fd:
 		exec(compile(fd.read(), filepath, "exec"), globals)
+def updatePip():
+	# On vérifie si pip est bien disponible.
+	if not os.path.exists(os.path.join(os.path.dirname(curPythonVersion), "scripts\\pip.exe")):
+		# Pip n'est pas installé dans notre version de Python.
+		sp.window.alert("Pip n'est pas installé dans votre version de Python\nVeuillez utiliser une version de Python où pip est déja présent", "Erreur")
+		return
+	# pip est bien présent, on exécute la commande de mise à jour.
+	cmd = [curPythonVersion, '-m', 'pip', 'install', '-U', 'pip']
+	executeModule(cmd)
+
+def executeModule(cmd):
+	# On ouvre le fichier de log.
+	f = open(os.path.join(sp.appdir, "logfile.log"), "w+")
+	# On récupère le retour de writeToFileAndScreen.
+	contains=writeToFileAndScreen(cmd, f)
+	# On referme le fichier de log.
+	f.close()
+	# On vérifie s'il y a une erreur.
+	if re.match(".+error", contains, re.I|re.S) and re.match(".+file", contains, re.I|re.S) and re.match(".+line", contains, re.I|re.S):
+		# On affiche une alerte, invitant l'utilisateur à atteindre directement la ligne concernée.
+		sp.window.alert("Erreur détectée à la ligne %s, dans le fichier %s, veuillez valider sur entré pour atteindre la ligne concernée.\nPour plus de détails, consultez la console ou le fichier 'logfile.log', figurant dans le répertoire de l'exécutable de 6pad++." % (goToLineError(contains)[1], goToLineError(contains)[0]), "Erreur détectée")
 
 def runAPythonCodeOrModule():
 	# Permet d'exécuter le module en cours d'exploration.
@@ -661,7 +691,7 @@ def runAPythonCodeOrModule():
 			sys.stdout = out
 			try:
 				# On execute le code.
-				executeModule(path)
+				execute6padModule(path)
 			except:
 				# Il y a des erreurs.
 				lines = traceback.format_exception(etype = sys.exc_info()[0], value = sys.exc_info()[1], tb = sys.exc_info()[2])
@@ -686,18 +716,10 @@ def runAPythonCodeOrModule():
 				sp.window.alert("Erreur détectée à la ligne %s, dans le fichier %s, veuillez valider sur entré pour atteindre la ligne concernée.\nPour plus de détails, consultez la console ou le fichier 'logfile.log', figurant dans le répertoire de l'exécutable de 6pad++." % (goToLineError(contains)[1], goToLineError(contains)[0]), "Erreur détectée")
 		else:
 			# On utilise une autre version de Python, indépendante de 6pad++.
-			# On ouvre le fichier de log.
-			f = open(os.path.join(sp.appdir, "logfile.log"), "w+")
 			# On crée la ligne de commande qui sera exécutée dans la fonction writeToFileAndScreen, grâce à subprocess.Popen.
 			cmd=[curPythonVersion, curPage.file]
-			# On récupère le retour de writeToFileAndScreen.
-			contains=writeToFileAndScreen(cmd, f)
-			# On referme le fichier de log.
-			f.close()
-			# On vérifie s'il y a une erreur.
-			if re.match(".+error", contains, re.I|re.S) and re.match(".+file", contains, re.I|re.S) and re.match(".+line", contains, re.I|re.S):
-				# On affiche une alerte, invitant l'utilisateur à atteindre directement la ligne concernée.
-				sp.window.alert("Erreur détectée à la ligne %s, dans le fichier %s, veuillez valider sur entré pour atteindre la ligne concernée.\nPour plus de détails, consultez la console ou le fichier 'logfile.log', figurant dans le répertoire de l'exécutable de 6pad++." % (goToLineError(contains)[1], goToLineError(contains)[0]), "Erreur détectée")
+			# On exécute notre code.
+			executeModule(cmd)
 
 # menus
 
@@ -739,7 +761,7 @@ deletion.add(label = "Supprimer la ligne courante", action = deleteCurrentLine, 
 navigation = menuForPython.add(label = "&Navigation", submenu = True)
 navigation.add(label = "Se déplacer vers l'élément &suivant", action = nextElement, accelerator = shortcuts["nextElement"], name = "nextElement")
 navigation.add(label = "Se déplacer vers l'élément &précédent", action = previousElement, accelerator = shortcuts["previousElement"], name = "previousElement")
-navigation.add(label = "Se déplacer vers la c&lasse suivante", action = nextClass, accelerator = shortcuts["nextClass"], name = "nextClass")
+navigation.add(label = "Se déplacer vers la &classe suivante", action = nextClass, accelerator = shortcuts["nextClass"], name = "nextClass")
 navigation.add(label = "Se déplacer vers la classe p&récédente", action = previousClass, accelerator = shortcuts["previousClass"], name = "previousClass")
 navigation.add(label = "Liste des c&lasses et fonctions", action = selectAClassOrFunction, accelerator = shortcuts["selectAClassOrFunction"], name = "selectAClassOrFunction")
 
@@ -754,6 +776,12 @@ menuPythonVersion.add(label = "6&pad++ Python version", action = make_action(0, 
 
 # for running code or module.
 menuForPython.add(label = "&Exécuter du code python ou un module", action = runAPythonCodeOrModule, name = "runAPythonCodeOrModule", accelerator = shortcuts["runAPythonCodeOrModule"])
+# On vérifie la présence du sous-menu permettant de mettre à jour pip.
+if curPythonVersion != "6padPythonVersion":
+	if not menuForPython[-1].name == "updatePip":
+		menuForPython.add(label = "Me&ttre à jour pip", action = updatePip, name = "updatePip")
+else:
+	menuForPython.remove(name = "updatePip")
 
 def addPythonVersionsSubMenus():
 	# On initialise l'index des sous-menus qui seront créés dans la boucle.
