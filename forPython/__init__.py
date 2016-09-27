@@ -518,31 +518,47 @@ def writeToFileAndScreen(cmd, logfile):
 	# On itère sur le proc.stdout.
 	for line in proc.stdout:
 		# On écrit dans le fichier de log, ligne par ligne.
-		logfile.write(line)
-		# On dirige vers la console, ligne par ligne.
-		sys.stdout.write(line)
-		# On ajoute chaque ligne dans la liste sous la forme d'élément de liste.
-		l.append(line)
+		if line:
+			logfile.write(line)
+			# On dirige vers la console, ligne par ligne.
+			sys.stdout.write(line)
+			# On ajoute chaque ligne dans la liste sous la forme d'élément de liste.
+			l.append(line)
+	proc.wait()
 	# On retourne la liste créée sous la forme d'une string.
 	return "\r\n".join(l)
 
 def goToLineError(errorMessage):
 	# Permet de retrouver la ligne d'erreur et de l'atteindre.
+	# On crée un index pour les recherches de lignes.
+	i = -1
 	# On crée une regexp qui va capturer 2 partie du messages d'erreur.
 	# 1. La partie concernant Le fichier comportant l'erreur et son chemin.
 	# 2. La ligne où se trouve l'erreur, qui nous aidera pour l'atteindre.
-	find=re.match(".+(?<=file \")([^\"]+)\", line (\d+)", errorMessage, re.I|re.S)
-	# On affecte les variables f et l à ces 2 éléments.
-	f, l = find.group(1), find.group(2)
-	#On affecte la variable page au fichier en cours d'exploration.
+	# Cette regex va retourner une liste de tuples correspondant à chaque item trouvé.
+	find=re.findall("(?<=file \")([^\"]+)\", line (\d+)", errorMessage, re.I|re.M)
+	# On crée une variable pour stocker la page courante.
 	page = sp.window.curPage
-	# On vérifie si le fichier en cours d'exploration est bien celui comportant l'erreur.
-	if not os.path.samefile(f, page.file):
-		# On vérifie parmi les fichiers actuellement ouverts.
-		for p in sp.window.pages:
-			if os.path.samefile(f, p.file):
-				# On affecte page à la page trouvée.
-				page = p
+	# On crée une liste de tous les onglets ouverts.
+	mod = [p.file for p in sp.window.pages]
+	# On itère à partir de la fin parmi les éléments de la liste pour trouver le module en cours.
+	# La recherche se fera parmi tous les modules ouverts dans 6pad++.
+	# On inverse la liste de lignes d'erreurs trouvées pour commencer à partir de la dernière.
+	find.reverse()
+	# On crée une expression pour chercher la correspondance de l'erreur trouvée avec les modules ouverts.
+	for item1, item2 in find:
+		if item1 in mod:
+			# On affecte les variables f et l au tuple trouvé.
+			f, l = item1, item2
+			# On stoppe l'itération pour ne récupérer que la première erreur à partir de la fin.
+			break
+	# On vérifie si f est bien le module actuellement ouvert.
+	if f != page.file:
+		# Le module actuellement ouvert n'est pas celui comportant l'erreur.
+		# On l'ouvre et le définit comme étant le module courant.
+		sp.window.open(f)
+		# On réaffecte page à la page courante.
+		page = sp.window.curPage
 	# On pointe sur la ligne concernée, dans le fichier comportant l'erreur.
 	page.curLine = int(l) - 1
 	# On retourne un tuple, composé du chemin du fichier concerné, ainsi que du numéro de ligne de l'erreur.
@@ -600,7 +616,7 @@ def runAPythonCodeOrModule():
 				exec(code)
 			except:
 				# Il y a des erreurs.
-				lines = traceback.format_exception_only(etype=sys.exc_info()[0], value=sys.exc_info()[1])
+				lines = traceback.format_exception(etype = sys.exc_info()[0], value = sys.exc_info()[1], tb = sys.exc_info()[2])
 				# On remplit notre variable out en y introduisant le contenu de la sortie standard.
 				print (''.join(line for line in lines))
 			finally:
