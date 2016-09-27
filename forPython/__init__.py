@@ -46,6 +46,16 @@ shortcuts["selectAClassOrFunction"] = sp.getConfig("selectAClassOrFunction") if 
 shortcuts["modifyShortcuts"] = sp.getConfig("modifyShortcuts") if sp.getConfig("modifyShortcuts") else "CTRL+M"
 # Running code or module
 shortcuts["runAPythonCodeOrModule"] = sp.getConfig("runAPythonCodeOrModule") if sp.getConfig("runAPythonCodeOrModule") else "CTRL+F5"
+# for using pip.
+if curPythonVersion != "6padPythonVersion" and os.path.exists(os.path.join(os.path.dirname(curPythonVersion), "scripts", "pip.exe")):
+	shortcuts["updatePip"] = sp.getConfig("updatePip") if sp.getConfig("updatePip") else "CTRL+SHIFT+P"
+	shortcuts["executeAPipCommand"] = sp.getConfig("executeAPipCommand") if sp.getConfig("executeAPipCommand") else "CTRL+F11"
+	# for Py2exe in python27.
+	if re.match("python27", curPythonVersion.split("\\")[-2], re.I):
+		shortcuts["compileScriptWithPy2exeP27"] = sp.getConfig("compileScriptWithPy2exeP27") if sp.getConfig("compileScriptWithPy2exeP27") else "CTRL+F10"
+# for installing package with setup script.
+if curPythonVersion != "6padPythonVersion" and int(curPythonVersion.split("\\")[-2].split("ython")[1][0]) > 1:
+	shortcuts["installPackageWithSetup"] = sp.getConfig("installPackageWithSetup") if sp.getConfig("installPackageWithSetup") else "CTRL+F12"
 
 def modifyShortcuts():
 	# On crée un dictionnaire pour la liste des options disponibles.
@@ -65,6 +75,14 @@ def modifyShortcuts():
 		"modifyShortcuts":modifyAccelerators.modifyShortcuts.label.replace("&", ""),
 		"runAPythonCodeOrModule":menuForPython.runAPythonCodeOrModule.label.replace("&", "")
 	}
+	if curPythonVersion != "6padPythonVersion" and int(curPythonVersion.split("\\")[-2].split("ython")[1][0]) > 1:
+		functionsList["installPackageWithSetup"] = menuForPython.installPackageWithSetup.label.replace("&", "")
+	if curPythonVersion != "6padPythonVersion" and os.path.exists(os.path.join(os.path.dirname(curPythonVersion), "scripts", "pip.exe")):
+		functionsList["updatePip"] = menuForPython.pipMenu["updatePip"].label.replace("&", "")
+		functionsList["executeAPipCommand"] = menuForPython.pipMenu["executeAPipCommand"].label.replace("&", "")
+		# On vérifie pour l'ajout de la compilation avec Py2exe pour Python 27.
+		if re.match("python27", curPythonVersion.split("\\")[-2], re.I):
+			functionsList["compileScriptWithPy2exeP27"] = menuForPython["compileScriptWithPy2exeP27"].label.replace("&", "")
 	# On remplit notre liste de choix à partir de nos 2 dictionnaires functionsList et shortcuts.
 	choices = [functionsList[k] + ":" + shortcuts[k] for k in shortcuts.keys()]
 	# On affiche notre listBox.
@@ -531,19 +549,48 @@ def make_action(i, f, exFile=None):
 		global curPythonVersion
 		menuName = f
 		curPythonVersion = "6padPythonVersion" if not exFile else exFile
-		for x in range(menuPythonVersion.length):
+		for x in range(pythonVersion.length):
 			if x != i:
-				menuPythonVersion[x].checked = False
+				pythonVersion[x].checked = False
 			else:
-				menuPythonVersion[x].checked = True
+				pythonVersion[x].checked = True
 		sp.setConfig("curPythonVersion", curPythonVersion)
 		sp.window.alert("C'est bon, %s a bien été activé !" % (curPythonVersion), "Confirmation")
-		# On vérifie la présence du sous-menu permettant de mettre à jour pip.
-		if curPythonVersion != "6padPythonVersion":
-			if not menuForPython[-1].name == "updatePip":
-				menuForPython.add(label = "Me&ttre à jour pip", action = updatePip, name = "updatePip")
+		# On vérifie la condition pour ajouter un sous-menu permettant d'installer un package avec un script setup.
+		if curPythonVersion != "6padPythonVersion" and int(curPythonVersion.split("\\")[-2].split("ython")[1][0]) > 1:
+			if menuForPython.installPackageWithSetup == None:
+				shortcuts["installPackageWithSetup"] = sp.getConfig("installPackageWithSetup") if sp.getConfig("installPackageWithSetup") else "CTRL+F12"
+				installPackage = menuForPython.add(label = "Ins&taller un package avec un script setup.py", action = installPackageFromSetupScript, name = "installPackageWithSetup", accelerator = shortcuts["installPackageWithSetup"])
 		else:
-			menuForPython.remove(name = "updatePip")
+			if "installPackageWithSetup" in shortcuts.keys():
+				del shortcuts["installPackageWithSetup"]
+			menuForPython.remove(name = "installPackageWithSetup")
+		# On vérifie la présence du sous-menu permettant de mettre à jour pip.
+		if curPythonVersion != "6padPythonVersion" and os.path.exists(os.path.join(os.path.dirname(curPythonVersion), "scripts", "pip.exe")):
+			if menuForPython.pipMenu == None:
+				shortcuts["updatePip"] = sp.getConfig("updatePip") if sp.getConfig("updatePip") else "CTRL+SHIFT+P"
+				shortcuts["executeAPipCommand"] = sp.getConfig("executeAPipCommand") if sp.getConfig("executeAPipCommand") else "CTRL+F11"
+				pipMenu = menuForPython.add(label = "Commandes &PIP", index = -2, submenu = True, name = "pipMenu")
+				pipMenu.add(label = "Me&ttre à jour pip", action = updatePip, name = "updatePip", accelerator = shortcuts["updatePip"])
+				pipMenu.add(label = "E&xécuter une commande PIP", action = executeAPipCommand, name = "executeAPipCommand", accelerator = shortcuts["executeAPipCommand"])
+			# On vérifie si l'on est avec Python 27 pour l'ajout de la compilation avec Py2exe compatible Python 27.
+			if re.match("python27", curPythonVersion.split("\\")[-2], re.I):
+				if menuForPython.compileScriptWithPy2exeP27 == None:
+					shortcuts["compileScriptWithPy2exeP27"] = sp.getConfig("compileScriptWithPy2exeP27") if sp.getConfig("compileScriptWithPy2exeP27") else "CTRL+F10"
+					menuForPython.add(label = "C&ompiler avec Py2exe pour Python 27", action = compileScriptWithPy2exeP27, index = -2, name = "compileScriptWithPy2exeP27", accelerator = shortcuts["compileScriptWithPy2exeP27"])
+			if int(curPythonVersion.split("\\")[-2].split("ython")[1][0]) > 2:
+				# On tourne avec une version 3 de Python, on supprime la clé de dictionnaire spécifique à la compilation avec Py2exe P27.
+				if "compileScriptWithPy2exeP27" in shortcuts.keys():
+					del shortcuts["compileScriptWithPy2exeP27"]
+		else:
+			if "updatePip" in shortcuts.keys():
+				del shortcuts["updatePip"]
+			if "executeAPipCommand" in shortcuts.keys():
+				del shortcuts["executeAPipCommand"]
+			if "compileScriptWithPy2exeP27" in shortcuts.keys():
+				del shortcuts["compileScriptWithPy2exeP27"]
+			menuForPython.remove(name = "compileScriptWithPy2exeP27")
+			menuForPython.remove(name = "pipMenu")
 	return action
 
 def writeToFileAndScreen(cmd, logfile):
@@ -596,8 +643,11 @@ def goToLineError(errorMessage):
 			f, l = item1, item2
 			# On stoppe l'itération pour ne récupérer que la première erreur à partir de la fin.
 			break
-		else:
-			f1, l1 = find[0]
+	if not f and not l:
+		f1, l1 = find[0]
+		# Le module comportant l'erreur n'est pas disponible.
+		sp.window.alert("Le module comportant l'erreur est %s, à la ligne %s, c'est un module qu'il nous est impossible d'ouvrir.\nPour plus de détails, veuillez consulter la console ou le fichier logfile.log figurant dans le même répertoire que l'exécutable de 6pad++." % (f1, l1), "Erreur")
+		return
 	# On vérifie si f est bien le module actuellement ouvert.
 	if f and l and f != page.file:
 		# Le module actuellement ouvert n'est pas celui comportant l'erreur.
@@ -605,14 +655,10 @@ def goToLineError(errorMessage):
 		sp.window.open(f)
 		# On réaffecte page à la page courante.
 		page = sp.window.curPage
-	elif f1 and l1:
-		# Le module comportant l'erreur n'est pas disponible.
-		sp.window.alert("Le module comportant l'erreur est %s, à la ligne %s, c'est un module qu'il nous est impossible d'ouvrir" % (f1, l1), "Impossible d'ouvrir le module comportant l'erreur")
-		return
+	# On affiche une alerte, invitant l'utilisateur à atteindre directement la ligne concernée.
+	sp.window.alert("Erreur détectée à la ligne %s, dans le fichier %s, veuillez valider sur OK pour atteindre la ligne concernée.\nPour plus de détails, veuillez consulter la console, ou le fichier logfile.log, figurant dans le même répertoire que l'exécutable de 6pad++" % (l, f), "Erreur")
 	# On pointe sur la ligne concernée, dans le fichier comportant l'erreur.
 	page.curLine = int(l) - 1
-	# On retourne un tuple, composé du chemin du fichier concerné, ainsi que du numéro de ligne de l'erreur.
-	return (f, l)
 
 def execute6padModule(filepath):
 	globals={
@@ -629,9 +675,64 @@ def updatePip():
 		return
 	# pip est bien présent, on exécute la commande de mise à jour.
 	cmd = [curPythonVersion, '-m', 'pip', 'install', '-U', 'pip']
-	executeModule(cmd)
+	executeCommand(cmd)
+def executeAPipCommand():
+	# Création d'un dictionnaire comportant certaines commandes.
+	commands = {}
+	# Ajout de la commande d'installation de wxPython_Phoenix, pour les versions 3 de Python.
+	if int(curPythonVersion.split("\\")[-2].split("ython")[1][0]) > 2:
+		commands["Installer wx.Python_Phoenix pour une version 3 de Python"] = [os.path.join(os.path.dirname(curPythonVersion), "Scripts\\pip.exe"), "install", "--upgrade", "--trusted-host", "wxpython.org", "--pre", "-f", "http://wxpython.org/Phoenix/snapshot-builds/", "wxPython_Phoenix"]
+	# Ajout de la commande pour installer Py2exe, dans les version supérieures à Python 32.
+	if int(curPythonVersion.split("\\")[-2].split("ython")[1][:2]) > 32:
+		commands["Installer Py2exe pour une version 33 ou plus de Python"] = [curPythonVersion, "-m", "pip", "install", "-U", "py2exe"]
+	# Création de notre liste de choix.
+	choices = list(commands.keys())
+	userChoice = sp.window.choice("Veuillez sélectionner une commande PIP à exécuter dans la liste", "Liste de commandes PIP disponibles", choices)
+	if userChoice == -1:
+		# On a validé sur annuler ou echappe.
+		return
+	# On exécute la commande PIP choisie par l'utilisateur.
+	executeCommand(commands[choices[userChoice]])
 
-def executeModule(cmd):
+def installPackageFromSetupScript():
+	# On vérifie si les conditions sont bien réunies.
+	if os.path.basename(sp.window.curPage.file) == "setup.py":
+		# C'est bien un script setup.py, on vérifie quand même s'il n'est pas lié plutôt à py2exe.
+		verify = [True for match in ["import py2exe", "from py2exe"] if match in sp.window.curPage.text]
+		if not True in verify:
+			# C'est bon, on peut exécuter notre commande.
+			cmd = [curPythonVersion, sp.window.curPage.file, "install"]
+			executeCommand(cmd)
+		else:
+			# C'est apparemment un script pour une compilation avec py2exe.
+			sp.window.alert("Ce script est plutôt destiné à être compilé avec py2exe, veuillez l'exécuter avec le menu approprié", "Erreur")
+	else:
+		# Ce script n'est pas un script d'installation de package.
+		sp.window.alert("Le module courant n'est pas un script d'installation, veuillez ouvrir un script setup.py d'installation de package pour utiliser cette action", "Erreur")
+
+def compileScriptWithPy2exeP27():
+	# On vérifie si les conditions sont bien réunies.
+	if os.path.basename(sp.window.curPage.file) == "setup.py":
+		# C'est bien un script setup.py, on vérifie maintenant qu'il est bien lié à py2exe.
+		verify = [True for match in ["import py2exe", "from py2exe"] if match in sp.window.curPage.text]
+		if True in verify:
+			# C'est bon, on peut exécuter notre commande.
+			# Mais avant cela, on vérifie quand même si Py2exe est bien installé.
+			if not os.path.exists(os.path.join(curPythonVersion, "lib", "site-packages", "py2exe")):
+				# Py2exe n'est pas installé, on sort.
+				sp.window.alert("Py2exe n'est pas installé dans votre version Python27, veuillez l'installer pour pouvoir exécuter cette action", "Erreur")
+				return
+			#Py2exe est bien installé, on peut continuer.
+			cmd = [curPythonVersion, sp.window.curPage.file, "py2exe"]
+			executeCommand(cmd)
+		else:
+			# Ce n'est apparemment pas un script pour compilation avec py2exe du python 27.
+			sp.window.alert("Ce script n'est pas un setup pour Py2exe, veuillez l'exécuter avec le menu approprié", "Erreur")
+	else:
+		# Ce script n'est pas du tout un setup.
+		sp.window.alert("Le module courant n'est pas un script de compilation avec Py2exe, veuillez ouvrir un script setup.py de compilation avec Py2exe pour utiliser cette action", "Erreur")
+
+def executeCommand(cmd):
 	# On ouvre le fichier de log.
 	f = open(os.path.join(sp.appdir, "logfile.log"), "w+")
 	# On récupère le retour de writeToFileAndScreen.
@@ -641,7 +742,7 @@ def executeModule(cmd):
 	# On vérifie s'il y a une erreur.
 	if re.match(".+error", contains, re.I|re.S) and re.match(".+file", contains, re.I|re.S) and re.match(".+line", contains, re.I|re.S):
 		# On affiche une alerte, invitant l'utilisateur à atteindre directement la ligne concernée.
-		sp.window.alert("Erreur détectée à la ligne %s, dans le fichier %s, veuillez valider sur entré pour atteindre la ligne concernée.\nPour plus de détails, consultez la console ou le fichier 'logfile.log', figurant dans le répertoire de l'exécutable de 6pad++." % (goToLineError(contains)[1], goToLineError(contains)[0]), "Erreur détectée")
+		goToLineError(contains)
 
 def runAPythonCodeOrModule():
 	# Permet d'exécuter le module en cours d'exploration.
@@ -713,22 +814,22 @@ def runAPythonCodeOrModule():
 			# On vérifie s'il y a une erreur.
 			if re.match(".+error", contains, re.I|re.S) and re.match(".+file", contains, re.I|re.S) and re.match(".+line", contains, re.I|re.S):
 				# On affiche une alerte, invitant l'utilisateur à atteindre directement la ligne concernée.
-				sp.window.alert("Erreur détectée à la ligne %s, dans le fichier %s, veuillez valider sur entré pour atteindre la ligne concernée.\nPour plus de détails, consultez la console ou le fichier 'logfile.log', figurant dans le répertoire de l'exécutable de 6pad++." % (goToLineError(contains)[1], goToLineError(contains)[0]), "Erreur détectée")
+				goToLineError(contains)
 		else:
 			# On utilise une autre version de Python, indépendante de 6pad++.
 			# On crée la ligne de commande qui sera exécutée dans la fonction writeToFileAndScreen, grâce à subprocess.Popen.
 			cmd=[curPythonVersion, curPage.file]
 			# On exécute notre code.
-			executeModule(cmd)
+			executeCommand(cmd)
 
 # menus
 
 toolsMenu = sp.window.menus.tools
-menuForPython = toolsMenu.add(label = "for &Python", submenu = True)
+menuForPython = toolsMenu.add(label = "for &Python", submenu = True, name = "forPython")
 
 # en-têtes de ligne
 
-lineHeadings = menuForPython.add(label = "Lecture des entêtes de &lignes", submenu = True)
+lineHeadings = menuForPython.add(label = "Lecture des entêtes de &lignes", submenu = True, name = "lineHeadings")
 lineHeadings.add(label = "Ne &rien dire", action = sayNothing, name = "nothing")
 lineHeadings.add(label = "Dire les nu&méro de lignes", action = sayLineNumber, name = "lineNumber")
 lineHeadings.add(label = "Dire les &indentations", action = sayIndentation, name = "indentation")
@@ -740,25 +841,25 @@ lineHeadings.nothing.checked = True
 
 # Sélection
 
-selection = menuForPython.add(label = "&Sélections", submenu = True)
+selection = menuForPython.add(label = "&Sélections", submenu = True, name = "selection")
 selection.add(label = "Sélectionner la &classe courante", action = selectCurrentClass, accelerator = shortcuts["selectCurrentClass"], name = "selectCurrentClass")
 selection.add(label = "Sélectionner la &fonction courante", action = selectCurrentFunction, accelerator = shortcuts["selectCurrentFunction"], name = "selectCurrentFunction")
 
 # insertion
 
-insertion = menuForPython.add(label = "&Insertion", submenu = True)
+insertion = menuForPython.add(label = "&Insertion", submenu = True, name = "insertion")
 insertion.add(label = "&Insérer une instruction d'en-tête de fichier", action = insertHeaderStatement , accelerator = shortcuts["insertHeaderStatement"], name = "insertHeaderStatement")
 
 # Suppressions
 
-deletion = menuForPython.add(label = "S&uppressions", submenu = True)
+deletion = menuForPython.add(label = "S&uppressions", submenu = True, name = "deletion")
 deletion.add(label = "Ssupprimmer la &classe courante", action = deleteCurrentClass, accelerator = shortcuts["deleteCurrentClass"], name = "deleteCurrentClass")
 deletion.add(label = "Supprimer la &fonction courante", action = deleteCurrentFunction, accelerator = shortcuts["deleteCurrentFunction"], name = "deleteCurrentFunction")
 deletion.add(label = "Supprimer la ligne courante", action = deleteCurrentLine, accelerator = shortcuts["deleteCurrentLine"], name = "deleteCurrentLine")
 
 # Navigation
 
-navigation = menuForPython.add(label = "&Navigation", submenu = True)
+navigation = menuForPython.add(label = "&Navigation", submenu = True, name = "navigation")
 navigation.add(label = "Se déplacer vers l'élément &suivant", action = nextElement, accelerator = shortcuts["nextElement"], name = "nextElement")
 navigation.add(label = "Se déplacer vers l'élément &précédent", action = previousElement, accelerator = shortcuts["previousElement"], name = "previousElement")
 navigation.add(label = "Se déplacer vers la &classe suivante", action = nextClass, accelerator = shortcuts["nextClass"], name = "nextClass")
@@ -767,21 +868,46 @@ navigation.add(label = "Liste des c&lasses et fonctions", action = selectAClassO
 
 # Modify shortcuts
 
-modifyAccelerators = menuForPython.add(label = "&Modifier les raccourcis claviers", submenu = True)
+modifyAccelerators = menuForPython.add(label = "&Modifier les raccourcis claviers", submenu = True, name = "modifyAccelerators")
 modifyAccelerators.add(label = "Modifier les ra&ccourcis-clavier des commandes", action = modifyShortcuts, accelerator = shortcuts["modifyShortcuts"], name = "modifyShortcuts")
 
 # For python versions.
-menuPythonVersion = menuForPython.add(label = "Activer une &version de Python installée", submenu = True)
-menuPythonVersion.add(label = "6&pad++ Python version", action = make_action(0, "6padPythonVersion"), name = "6padPythonVersion")
+pythonVersion = menuForPython.add(label = "Activer une &version de Python installée", submenu = True, name = "pythonVersion")
+pythonVersion.add(label = "6&pad++ Python version", action = make_action(0, "6padPythonVersion"), name = "6padPythonVersion")
+
+# On vérifie la présence du sous-menu permettant de mettre à jour pip.
+if curPythonVersion != "6padPythonVersion" and os.path.exists(os.path.join(os.path.dirname(curPythonVersion), "scripts", "pip.exe")):
+	if menuForPython.pipMenu == None:
+		shortcuts["updatePip"] = sp.getConfig("updatePip") if sp.getConfig("updatePip") else "CTRL+SHIFT+P"
+		shortcuts["executeAPipCommand"] = sp.getConfig("executeAPipCommand") if sp.getConfig("executeAPipCommand") else "CTRL+F11"
+		pipMenu = menuForPython.add(label = "Commandes &PIP", submenu = True, name = "pipMenu")
+		pipMenu.add(label = "Me&ttre à jour pip", action = updatePip, name = "updatePip", accelerator = shortcuts["updatePip"])
+		pipMenu.add(label = "E&xécuter une commande PIP", action = executeAPipCommand, name = "executeAPipCommand", accelerator = shortcuts["executeAPipCommand"])
+	# On vérifie si l'on est avec Python 27 pour l'ajout de la compilation avec Py2exe compatible Python 27.
+	if re.match("python27", curPythonVersion.split("\\")[-2], re.I):
+		if menuForPython.compileScriptWithPy2exeP27 == None:
+			shortcuts["compileScriptWithPy2exeP27"] = sp.getConfig("compileScriptWithPy2exeP27") if sp.getConfig("compileScriptWithPy2exeP27") else "CTRL+F10"
+			menuForPython.add(label = "C&ompiler avec Py2exe pour Python 27", action = compileScriptWithPy2exeP27, name = "compileScriptWithPy2exeP27", accelerator = shortcuts["compileScriptWithPy2exeP27"])
+	if int(curPythonVersion.split("\\")[-2].split("ython")[1][0]) > 2:
+		# On tourne avec une version 3 de Python, on supprime la clé de dictionnaire spécifique à la compilation avec Py2exe P27.
+		if "compileScriptWithPy2exeP27" in shortcuts.keys():
+			del shortcuts["compileScriptWithPy2exeP27"]
+else:
+	if "updatePip" in shortcuts.keys():
+		del shortcuts["updatePip"]
+	if "executeAPipCommand" in shortcuts.keys():
+		del shortcuts["executeAPipCommand"]
+	if "compileScriptWithPy2exeP27" in shortcuts.keys():
+		del shortcuts["compileScriptWithPy2exeP27"]
+	menuForPython.remove(name = "compileScriptWithPy2exeP27")
+	menuForPython.remove(name = "pipMenu")
+
+# for installing setup package.
+if curPythonVersion != "6padPythonVersion" and int(curPythonVersion.split("\\")[-2].split("ython")[1][0]) > 1:
+	installPackage = menuForPython.add(label = "Ins&taller un package avec un script setup.py", action = installPackageFromSetupScript, name = "installPackageWithSetup", accelerator = shortcuts["installPackageWithSetup"])
 
 # for running code or module.
 menuForPython.add(label = "&Exécuter du code python ou un module", action = runAPythonCodeOrModule, name = "runAPythonCodeOrModule", accelerator = shortcuts["runAPythonCodeOrModule"])
-# On vérifie la présence du sous-menu permettant de mettre à jour pip.
-if curPythonVersion != "6padPythonVersion":
-	if not menuForPython[-1].name == "updatePip":
-		menuForPython.add(label = "Me&ttre à jour pip", action = updatePip, name = "updatePip")
-else:
-	menuForPython.remove(name = "updatePip")
 
 def addPythonVersionsSubMenus():
 	# On initialise l'index des sous-menus qui seront créés dans la boucle.
@@ -815,9 +941,9 @@ def addPythonVersionsSubMenus():
 						# On incrémente l'index des sous-menus qui seront créés plus bas.
 						i += 1
 						# On crée le sous-menu correspondant.
-						menuPythonVersion.add(label = "%s - %s" % (f, str(os.path.join(p, f))), action = make_action(i, f, exFile), name = f)
+						pythonVersion.add(label = "%s - %s" % (f, str(os.path.join(p, f))), action = make_action(i, f, exFile), name = f)
 						# On remplit la liste pythonVersionsList déclarée en début de module.
 						pythonVersionsList.append(exFile)
 
 addPythonVersionsSubMenus()
-menuPythonVersion[pythonVersionsList.index(curPythonVersion)].checked = True
+pythonVersion[pythonVersionsList.index(curPythonVersion)].checked = True
