@@ -70,6 +70,7 @@ shortcuts["previousElement"] = sp.getConfig("previousElement") if sp.getConfig("
 shortcuts["nextClass"] = sp.getConfig("nextClass") if sp.getConfig("nextClass") else "CTRL+F2"
 shortcuts["previousClass"] = sp.getConfig("previousClass") if sp.getConfig("previousClass") else "CTRL+SHIFT+F2"
 shortcuts["selectAClassOrFunction"] = sp.getConfig("selectAClassOrFunction") if sp.getConfig("selectAClassOrFunction") else "CTRL+L"
+shortcuts["goToEnd"] = sp.getConfig("goToEnd") if sp.getConfig("goToEnd") else "ALT+F2"
 # Modify shortcuts
 shortcuts["modifyShortcuts"] = sp.getConfig("modifyShortcuts") if sp.getConfig("modifyShortcuts") else "CTRL+M"
 # Running code or module
@@ -88,16 +89,16 @@ if curPythonVersion != "6padPythonVersion" and os.path.exists(os.path.join(os.pa
 if curPythonVersion != "6padPythonVersion" and int(curPythonVersion.split("\\")[-2].split("ython")[1][0]) > 1:
 	shortcuts["installPackageWithSetup"] = sp.getConfig("installPackageWithSetup") if sp.getConfig("installPackageWithSetup") else "CTRL+F12"
 # Exploration
-shortcuts["navigateLeft"] = sp.getConfig("navigateLeft") if sp.getConfig("navigateLeft") else "ALT+LEFT"
-shortcuts["navigateRight"] = sp.getConfig("navigateRight") if sp.getConfig("navigateRight") else "ALT+RIGHT"
-shortcuts["nextBrother"] = sp.getConfig("nextBrother") if sp.getConfig("nextBrother") else "ALT+DOWN"
-shortcuts["previousBrother"] = sp.getConfig("previousBrother") if sp.getConfig("previousBrother") else "ALT+UP"
+shortcuts["navigateRight"] = sp.getConfig("navigateRight") if sp.getConfig("navigateRight") else "F9"
+shortcuts["navigateLeft"] = sp.getConfig("navigateLeft") if sp.getConfig("navigateLeft") else "SHIFT+F9"
+shortcuts["nextBrother"] = sp.getConfig("nextBrother") if sp.getConfig("nextBrother") else "F11"
+shortcuts["previousBrother"] = sp.getConfig("previousBrother") if sp.getConfig("previousBrother") else "SHIFT+F11"
 # Tags
 shortcuts["removeTags"] = sp.getConfig("removeTags") if sp.getConfig("removeTags") else "F7"
-shortcuts["addTags"] = sp.getConfig("addTags") if sp.getConfig("addTags") else "F10"
-shortcuts["adjustIndent"] = sp.getConfig("adjustIndent") if sp.getConfig("adjustIndent") else "F11"
+shortcuts["addTags"] = sp.getConfig("addTags") if sp.getConfig("addTags") else "ALT+F10"
+shortcuts["adjustIndent"] = sp.getConfig("adjustIndent") if sp.getConfig("adjustIndent") else "ALT+F12"
 # Refresh code
-shortcuts["refreshCode"] = sp.getConfig("refreshCode") if sp.getConfig("refreshCode") else "F12"
+shortcuts["refreshCode"] = sp.getConfig("refreshCode") if sp.getConfig("refreshCode") else "Alt+F12"
 # Accessibility
 shortcuts["vocalSynthesis"] = sp.getConfig("vocalSynthesis") if sp.getConfig("vocalSynthesis") else "CTRL+F3"
 shortcuts["sayCurrentBlocName"] = sp.getConfig("sayCurrentBlocName") if sp.getConfig("sayCurrentBlocName") else "CTRL+SHIFT+B"
@@ -137,6 +138,7 @@ def modifyShortcuts():
 		"previousElement":menuNavigation.previousElement.label.replace("&", ""),
 		"nextClass":menuNavigation.nextClass.label.replace("&", ""),
 		"previousClass":menuNavigation.previousClass.label.replace("&", ""),
+		"goToEnd":menuNavigation.goToEnd.label.replace("&", ""),
 		"selectAClassOrFunction":menuNavigation.selectAClassOrFunction.label.replace("&", ""),
 		"modifyShortcuts":menuModifyAccelerators.modifyShortcuts.label.replace("&", ""),
 		"runAPythonCodeOrModule":menuExecution.runAPythonCodeOrModule.label.replace("&", ""),
@@ -3621,14 +3623,14 @@ def loadForPythonTools():
 	menuNavigation.add(label = "Se déplacer vers l'élément &précédent", action = previousElement, accelerator = shortcuts["previousElement"], name = "previousElement")
 	menuNavigation.add(label = "Se déplacer vers la &classe suivante", action = nextClass, accelerator = shortcuts["nextClass"], name = "nextClass")
 	menuNavigation.add(label = "Se déplacer vers la classe p&récédente", action = previousClass, accelerator = shortcuts["previousClass"], name = "previousClass")
-	menuNavigation.add(label = "Se déplacer à la fin de l'élément courant", accelerator = "ALT+F2", action = goToEndOfElement, name = "goToEnd")
+	menuNavigation.add(label = "Se déplacer à la fin de l'élément courant", accelerator = shortcuts["goToEnd"], action = goToEndOfElement, name = "goToEnd")
 	menuNavigation.add(label = "Liste des c&lasses et fonctions", action = selectAClassOrFunction, accelerator = shortcuts["selectAClassOrFunction"], name = "selectAClassOrFunction")
 	# les menus d'exploration du code
 	menuExploration = menuView.add(label = "&Exploration", submenu = True, name = "exploration")
-	menuExploration.add(label = "Aller au bloc &parent (ALT+LEFT)", action = navigateLeft, accelerator = shortcuts["navigateLeft"], name = "navigateLeft")
-	menuExploration.add(label = "Aller au premier bloc &enfant (ALT+RIGHT)", action = navigateRight, accelerator = shortcuts["navigateRight"], name = "navigateRight")
-	menuExploration.add(label = "Aller au bloc frère &suivant (ALT+DOWN)", action = navigateDown, accelerator = shortcuts["nextBrother"], name = "nextBrother")
-	menuExploration.add(label = "Aller au bloc frère précéde&nt (ALT+UP)", action = navigateUp, accelerator = shortcuts["previousBrother"], name = "previousBrother")
+	menuExploration.add(label = "Aller au bloc &parent", action = navigateLeft, accelerator = shortcuts["navigateLeft"], name = "navigateLeft")
+	menuExploration.add(label = "Aller au premier bloc &enfant", action = navigateRight, accelerator = shortcuts["navigateRight"], name = "navigateRight")
+	menuExploration.add(label = "Aller au bloc frère &suivant", action = navigateDown, accelerator = shortcuts["nextBrother"], name = "nextBrother")
+	menuExploration.add(label = "Aller au bloc frère précéde&nt", action = navigateUp, accelerator = shortcuts["previousBrother"], name = "previousBrother")
 	
 	# les menus des balises de fin de bloc
 	menuTags = menuView.add(label = "Balises de fin de bloc", submenu = True, name = "endBlocTags")

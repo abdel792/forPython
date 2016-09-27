@@ -111,3 +111,5 @@ Devrait nous afficher l'aide sur la commande install.
 03-05-2016
 * Ajout de la vérification du nouveau raccourci-clavier choisi lors du changement de raccourcis-clavier avec CTRL+M.
 
+04-05-2016
+* Ajustement des raccourcis-clavier permettant de naviguer parmi les blocs.
